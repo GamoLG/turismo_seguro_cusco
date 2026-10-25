@@ -1,0 +1,91 @@
+name: Flutter CI - QA Automation & Profiling Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'registro-icono-mvp'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa_validation:
+    name: Análisis Estático, Pruebas Unitarias y Cobertura (>90%)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 1. Checkout del código fuente
+        uses: actions/checkout@v4
+
+      - name: 2. Configuración de Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 3. Configuración del Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 4. Información del entorno de ejecución
+        run: |
+          flutter doctor -v
+          flutter --version
+
+      - name: 5. Descarga de dependencias del proyecto
+        run: flutter pub get
+
+      - name: 6. Análisis estático de código (flutter analyze)
+        run: flutter analyze --no-fatal-infos
+
+      - name: 7. Ejecución de la suite de pruebas unitarias y de widgets con cobertura
+        run: flutter test --coverage
+
+      - name: 8. Verificación de umbral de cobertura (>90%)
+        run: |
+          echo "=== Verificando cobertura mínima del 90% ==="
+          if [ ! -f coverage/lcov.info ]; then
+            echo "Error: Archivo coverage/lcov.info no generado."
+            exit 1
+          fi
+
+          TOTAL_LF=$(grep '^LF:' coverage/lcov.info | awk -F: '{sum += $2} END {print sum}')
+          TOTAL_LH=$(grep '^LH:' coverage/lcov.info | awk -F: '{sum += $2} END {print sum}')
+
+          if [ "$TOTAL_LF" -eq 0 ]; then
+            echo "Error: Líneas instrumentadas es 0."
+            exit 1
+          fi
+
+          PERCENTAGE=$(awk "BEGIN {printf \"%.2f\", ($TOTAL_LH / $TOTAL_LF) * 100}")
+          echo "Líneas totales: $TOTAL_LF"
+          echo "Líneas cubiertas: $TOTAL_LH"
+          echo "Cobertura calculada: $PERCENTAGE%"
+
+          THRESHOLD=90.00
+          IS_VALID=$(awk "BEGIN {print ($PERCENTAGE >= $THRESHOLD)}")
+
+          if [ "$IS_VALID" -eq 1 ]; then
+            echo "✅ Criterio de Rúbrica Superado: Cobertura de código ($PERCENTAGE%) es superior al $THRESHOLD% requerido."
+          else
+            echo "❌ Fallo de Rúbrica: Cobertura ($PERCENTAGE%) es inferior al umbral requerido del $THRESHOLD%."
+            exit 1
+          fi
+
+      - name: 9. Almacenar reporte de cobertura como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov-coverage-report
+          path: coverage/lcov.info
+          retention-days: 14

@@ -1,0 +1,40 @@
+[
+  {
+    "idAtractivo": "atr_01",
+    "nombre": "Piedra de los 12 Ángulos / Hatun Rumiyoc",
+    "tramo": "Calle Hatun Rumiyoc (Triunfo - San Blas)",
+    "coordenadasGps": "-13.5164,-71.9772",
+    "aforoMaximo": 450,
+    "aforoActual": 418,
+    "velocidadTransito": 0.18,
+    "circuitoAlternativo": {
+      "idCircuito": "circ_01",
+      "nombreCircuito": "Circuito Tradicional San Cristóbal y Siete Borreguitos",
+      "tiempoEstimadoMin": 18,
+      "distanciaKm": 1.2,
+      "porcentajeCongestion": 15,
+      "descripcionCultural": "Ruta patrimonial alterna que bordea Choquechaka y Saphy, reduciendo el desgaste litico.",
+      "garantiaSeguridad": "Patrullaje permanente de la Policía de Turismo (POLTUR)"
+    }
+  },
+  {
+    "idAtractivo": "atr_02",
+    "nombre": "Cuesta de San Blas",
+    "tramo": "Acceso Barrio Artesanal",
+    "coordenadasGps": "-13.5150,-71.9750",
+    "aforoMaximo": 300,
+    "aforoActual": 185,
+    "velocidadTransito": 0.75,
+    "circuitoAlternativo": null
+  },
+  {
+    "idAtractivo": "atr_03",
+    "nombre": "Plazoleta San Cristóbal",
+    "tramo": "Mirador Panorámico",
+    "coordenadasGps": "-13.5135,-71.9790",
+    "aforoMaximo": 500,
+    "aforoActual": 110,
+    "velocidadTransito": 1.35,
+    "circuitoAlternativo": null
+  }
+]
