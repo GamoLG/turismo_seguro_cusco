@@ -6,6 +6,9 @@ import '../../domain/models/atractivo_turistico.dart';
 import '../../domain/models/circuito_alternativo.dart';
 import '../../domain/models/nivel_aforo.dart';
 import 'ruta_alterna_screen.dart';
+import '../../data/services/osrm_routing_service.dart';
+
+enum FiltroAforo { todos, soloCriticos, zonasLibres }
 
 class AforoScreen extends StatefulWidget {
   const AforoScreen({super.key});
@@ -18,6 +21,12 @@ class _AforoScreenState extends State<AforoScreen> {
   final MapController _mapController = MapController();
   LatLng _ubicacionUsuario = const LatLng(-13.5164, -71.9772);
   bool _ubicacionObtenida = false;
+
+  AtractivoTuristico? _atractivoSeleccionado;
+  String? _circuitoSeleccionadoId;
+  List<LatLng> _puntosRutaActiva = [];
+  bool _cargandoRuta = false;
+  FiltroAforo _filtroActual = FiltroAforo.todos;
 
   final List<AtractivoTuristico> _atractivos = [
     AtractivoTuristico(
@@ -154,38 +163,82 @@ class _AforoScreenState extends State<AforoScreen> {
     ),
   ];
 
-// Trazados de desvío georreferenciados para cada punto crítico
-  Map<String, List<LatLng>> get _rutasDesvio => const {
-    // Desvío Hatun Rumiyoc -> Choquechaka -> Pumacurco -> San Cristóbal
-    'hatun_rumiyoc': const [
-      LatLng(-13.5159, -71.9772), // Inicio: Calle Hatun Rumiyoc
-      LatLng(-13.5154, -71.9765), // Cruce con Choquechaka
-      LatLng(-13.5147, -71.9761), // Siguiendo Choquechaka
-      LatLng(-13.5140, -71.9767), // Choquechaka norte
-      LatLng(-13.5135, -71.9773), // Giro hacia Siete Borreguitos / Pumacurco
-      LatLng(-13.5133, -71.9785), // Cruce Pumacurco
-      LatLng(-13.5131, -71.9796), // Subida San Cristóbal
-      LatLng(-13.5132, -71.9804), // Llegada: Plazoleta San Cristóbal
+  // Catálogo de opciones de desvío con trazados peatonales optimizados directos
+  final Map<String, List<Map<String, dynamic>>> _opcionesDesvio = {
+    'hatun_rumiyoc': [
+      {
+        'id': 'desvio_san_cristobal',
+        'nombre': 'Vía Choquechaka y San Cristóbal',
+        'tiempo': '15 min',
+        'distancia': '0.9 km',
+        'destino': const LatLng(-13.5132, -71.9804),
+        // Camino peatonal directo por esquinas reales (evita rodeos largos)
+        'puntosDirectos': const [
+          LatLng(-13.5159, -71.9772), // Hatun Rumiyoc
+          LatLng(-13.5154, -71.9765), // Salida a Choquechaka
+          LatLng(-13.5147, -71.9761), // Recta Choquechaka
+          LatLng(-13.5138, -71.9770), // Giro hacia Siete Borreguitos
+          LatLng(-13.5134, -71.9782), // Siete Borreguitos
+          LatLng(-13.5131, -71.9796), // Arco Iris / Saphy
+          LatLng(-13.5132, -71.9804), // Plazoleta San Cristóbal
+        ],
+      },
+      {
+        'id': 'desvio_nazarenas',
+        'nombre': 'Vía Cuesta Palacio y Nazarenas',
+        'tiempo': '7 min',
+        'distancia': '0.5 km',
+        'destino': const LatLng(-13.5148, -71.9786),
+        'puntosDirectos': const [
+          LatLng(-13.5159, -71.9772), // Hatun Rumiyoc
+          LatLng(-13.5157, -71.9776), // Calle Palacio
+          LatLng(-13.5150, -71.9783), // Subida Córdoba del Tucumán
+          LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+        ],
+      },
     ],
-    // Cuesta San Blas -> Choquechaka -> Nazarenas
     'cuesta_san_blas': [
-      LatLng(-13.5151, -71.9763), // Cuesta San Blas
-      LatLng(-13.5142, -71.9760), // Choquechaka
-      LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+      {
+        'id': 'desvio_choquechaka',
+        'nombre': 'Desvío Choquechaka - Nazarenas',
+        'tiempo': '9 min',
+        'distancia': '0.6 km',
+        'destino': const LatLng(-13.5148, -71.9786),
+        'puntosDirectos': const [
+          LatLng(-13.5151, -71.9763), // Cuesta San Blas
+          LatLng(-13.5146, -71.9762), // Cruce Choquechaka
+          LatLng(-13.5148, -71.9786), // Conector Nazarenas
+        ],
+      },
     ],
-    // Calle Triunfo -> Ataúd -> Plazoleta Nazarenas
     'calle_triunfo': [
-      LatLng(-13.5164, -71.9778), // Calle Triunfo
-      LatLng(-13.5155, -71.9790), // Ataúd
-      LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+      {
+        'id': 'desvio_palacio_nazarenas',
+        'nombre': 'Desvío Palacio Inka Rocha - Nazarenas',
+        'tiempo': '8 min',
+        'distancia': '0.5 km',
+        'destino': const LatLng(-13.5148, -71.9786),
+        'puntosDirectos': const [
+          LatLng(-13.5164, -71.9778), // Triunfo
+          LatLng(-13.5155, -71.9790), // Ataúd
+          LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+        ],
+      },
     ],
-    // Calle Loreto -> Maruri
     'calle_loreto': [
-      LatLng(-13.5173, -71.9787), // Calle Loreto
-      LatLng(-13.5178, -71.9775), // Calle Maruri
+      {
+        'id': 'desvio_maruri',
+        'nombre': 'Desfogue Calle Maruri hacia Av. El Sol',
+        'tiempo': '6 min',
+        'distancia': '0.4 km',
+        'destino': const LatLng(-13.5178, -71.9775),
+        'puntosDirectos': const [
+          LatLng(-13.5173, -71.9787), // Loreto
+          LatLng(-13.5178, -71.9775), // Maruri
+        ],
+      },
     ],
   };
-
 
   @override
   void initState() {
@@ -203,37 +256,102 @@ class _AforoScreenState extends State<AforoScreen> {
         final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
-        setState(() {
-          _ubicacionUsuario = LatLng(pos.latitude, pos.longitude);
-          _ubicacionObtenida = true;
-        });
-      } catch (_) {
-        // Mantiene la coordenada por defecto si el sensor tarda
-      }
+        if (mounted) {
+          setState(() {
+            _ubicacionUsuario = LatLng(pos.latitude, pos.longitude);
+            _ubicacionObtenida = true;
+          });
+        }
+      } catch (_) {}
     }
   }
 
-  AtractivoTuristico? _atractivoSeleccionado;
+  List<AtractivoTuristico> get _atractivosFiltrados {
+    switch (_filtroActual) {
+      case FiltroAforo.soloCriticos:
+        return _atractivos.where((a) => a.obtenerEstadoAforo() == NivelAforo.saturado).toList();
+      case FiltroAforo.zonasLibres:
+        return _atractivos.where((a) => a.obtenerEstadoAforo() == NivelAforo.optimo).toList();
+      case FiltroAforo.todos:
+      default:
+        return _atractivos;
+    }
+  }
 
   void _seleccionarAtractivo(AtractivoTuristico atractivo) {
     setState(() {
       _atractivoSeleccionado = atractivo;
+      _circuitoSeleccionadoId = null;
+      _puntosRutaActiva = [];
+      _cargandoRuta = false;
     });
     final partes = atractivo.coordenadasGps.split(',');
     final pos = LatLng(double.parse(partes[0]), double.parse(partes[1]));
-    _mapController.move(pos, _mapController.camera.zoom);
+    _mapController.move(pos, 16.5);
   }
 
   void _cerrarDetalle() {
     setState(() {
       _atractivoSeleccionado = null;
+      _circuitoSeleccionadoId = null;
+      _puntosRutaActiva = [];
+      _cargandoRuta = false;
     });
+  }
+
+  // SOLO DIBUJA LA RUTA EN EL MAPA (NO ABRE LA OTRA PANTALLA)
+  Future<void> _seleccionarRuta(Map<String, dynamic> opcion) async {
+    final String id = opcion['id'] as String;
+
+    if (_circuitoSeleccionadoId == id) {
+      setState(() {
+        _circuitoSeleccionadoId = null;
+        _puntosRutaActiva = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _circuitoSeleccionadoId = id;
+      _cargandoRuta = true;
+    });
+
+    final partes = _atractivoSeleccionado!.coordenadasGps.split(',');
+    final origen = LatLng(double.parse(partes[0]), double.parse(partes[1]));
+    final destino = opcion['destino'] as LatLng;
+
+    List<LatLng> rutaCalculada = await OsrmRoutingService.obtenerRutaPeatonal(origen, destino);
+
+    // Si OSRM no responde o devuelve una ruta con rodeos innecesarios, se usa la ruta peatonal directa
+    if (rutaCalculada.isEmpty || rutaCalculada.length > 80) {
+      rutaCalculada = List<LatLng>.from(opcion['puntosDirectos'] as List);
+    }
+
+    if (mounted) {
+      setState(() {
+        _puntosRutaActiva = rutaCalculada;
+        _cargandoRuta = false;
+      });
+
+      // Auto-centra el mapa para mostrar la ruta completa sin salirse de la pantalla
+      if (_puntosRutaActiva.isNotEmpty) {
+        final bounds = LatLngBounds.fromPoints(_puntosRutaActiva);
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: bounds,
+            padding: const EdgeInsets.only(top: 80, bottom: 260, left: 45, right: 45),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildTarjetaCongestion(AtractivoTuristico atractivo) {
     final nivel = atractivo.obtenerEstadoAforo();
     final double ocupacion = atractivo.calcularPorcentajeOcupacion();
     final bool tieneAforoValido = atractivo.aforoMaximo > 0;
+    final bool esSaturado = nivel == NivelAforo.saturado;
+    final bool tieneOpcionesDesvio = _opcionesDesvio.containsKey(atractivo.idAtractivo);
 
     String etiquetaNivel;
     Color colorNivel;
@@ -243,216 +361,294 @@ class _AforoScreenState extends State<AforoScreen> {
     switch (nivel) {
       case NivelAforo.saturado:
         etiquetaNivel = 'Alta';
-        colorNivel = const Color(0xFFC62828); // Rojo de alto contraste
+        colorNivel = const Color(0xFFC62828);
         bgNivel = const Color(0xFFFFEBEE);
         borderNivel = const Color(0xFFFFCDD2);
         break;
       case NivelAforo.moderado:
         etiquetaNivel = 'Moderada';
-        colorNivel = const Color(0xFFE65100); // Ámbar oscuro
+        colorNivel = const Color(0xFFE65100);
         bgNivel = const Color(0xFFFFF3E0);
         borderNivel = const Color(0xFFFFE0B2);
         break;
       case NivelAforo.optimo:
         etiquetaNivel = 'Baja';
-        colorNivel = const Color(0xFF2E7D32); // Verde esmeralda oscuro
+        colorNivel = const Color(0xFF2E7D32);
         bgNivel = const Color(0xFFE8F5E9);
         borderNivel = const Color(0xFFC8E6C9);
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.44,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.12),
+            color: Color.fromRGBO(0, 0, 0, 0.15),
             blurRadius: 16,
             offset: Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // A. Encabezado
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            atractivo.nombre,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                              height: 1.2,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Encabezado
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              atractivo.nombre,
+                              style: const TextStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: bgNivel,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: borderNivel, width: 1),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 7,
-                                height: 7,
-                                decoration: BoxDecoration(
-                                  color: colorNivel,
-                                  shape: BoxShape.circle,
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: bgNivel,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderNivel, width: 1),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: BoxDecoration(
+                                    color: colorNivel,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                etiquetaNivel,
-                                style: TextStyle(
-                                  color: colorNivel,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
+                                const SizedBox(width: 4),
+                                Text(
+                                  etiquetaNivel,
+                                  style: TextStyle(
+                                    color: colorNivel,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 11.5,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(Icons.place_outlined, size: 13, color: Colors.blueGrey.shade400),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              atractivo.tramo,
+                              style: TextStyle(
+                                color: Colors.blueGrey.shade600,
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _cerrarDetalle,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(Icons.close, size: 18, color: Colors.blueGrey.shade400),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Nivel de Ocupación
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Nivel de ocupación',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+                ),
+                Text(
+                  tieneAforoValido ? '${ocupacion.toStringAsFixed(1)}%' : 'N/D',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: tieneAforoValido ? colorNivel : Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: tieneAforoValido ? (ocupacion / 100.0).clamp(0.0, 1.0) : 0.0,
+                minHeight: 7,
+                backgroundColor: const Color(0xFFF1F5F9),
+                valueColor: AlwaysStoppedAnimation<Color>(colorNivel),
+              ),
+            ),
+
+            // Selector de Rutas de Desvío (Solo visible si está saturado y tiene desvíos asignados)
+            if (esSaturado && tieneOpcionesDesvio) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(Icons.alt_route, size: 15, color: Colors.indigo),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Toca una ruta para ver el camino en el mapa:',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  ),
+                  if (_cargandoRuta) ...[
+                    const Spacer(),
+                    const SizedBox(
+                      width: 13,
+                      height: 13,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.indigo),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.place_outlined, size: 14, color: Colors.blueGrey.shade400),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            atractivo.tramo,
-                            style: TextStyle(
-                              color: Colors.blueGrey.shade600,
-                              fontSize: 12.5,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              ..._opcionesDesvio[atractivo.idAtractivo]!.map((opcion) {
+                final bool esSeleccionado = _circuitoSeleccionadoId == opcion['id'];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 5.0),
+                  child: InkWell(
+                    // Al tocar la opción, solo traza la línea azul en el mapa
+                    onTap: () => _seleccionarRuta(opcion),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: esSeleccionado ? const Color(0xFFE8EAF6) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: esSeleccionado ? Colors.indigo : const Color(0xFFE2E8F0),
+                          width: esSeleccionado ? 1.5 : 1.0,
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            esSeleccionado ? Icons.radio_button_checked : Icons.radio_button_off,
+                            color: esSeleccionado ? Colors.indigo : Colors.blueGrey.shade300,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              opcion['nombre'] as String,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: esSeleccionado ? FontWeight.bold : FontWeight.w500,
+                                color: esSeleccionado ? Colors.indigo.shade900 : Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '${opcion['tiempo']} (${opcion['distancia']})',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: esSeleccionado ? FontWeight.bold : FontWeight.normal,
+                              color: esSeleccionado ? Colors.indigo : Colors.blueGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ] else if (!esSaturado) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFC8E6C9)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.check_circle_outline, color: Color(0xFF2E7D32), size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Espacio con tránsito fluido. No se requieren desvíos.',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF1B5E20), fontWeight: FontWeight.w500),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
-              InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: _cerrarDetalle,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Icon(Icons.close, size: 18, color: Colors.blueGrey.shade400),
-                ),
-              ),
             ],
-          ),
-          const SizedBox(height: 14),
 
-          // B. Indicador principal (Ocupación única con número destacado y barra de progreso)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              const Text(
-                'Nivel de ocupación',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-              Text(
-                tieneAforoValido ? '${ocupacion.toStringAsFixed(1)}%' : 'No disponible',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: tieneAforoValido ? colorNivel : Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: tieneAforoValido ? (ocupacion / 100.0).clamp(0.0, 1.0) : 0.0,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFF1F5F9),
-              valueColor: AlwaysStoppedAnimation<Color>(colorNivel),
-            ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
-          // C. Acción principal: «Buscar ruta alternativa»
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            // Botón explícito para ir a la pantalla de detalle
+            if (atractivo.circuitoAlternativo != null)
+              SizedBox(
+                width: double.infinity,
+                height: 40,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RutaAlternaScreen(
+                          circuito: atractivo.circuitoAlternativo!,
+                          origenNombre: atractivo.nombre,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.navigation_outlined, size: 16),
+                  label: const Text(
+                    'Ver detalle del circuito',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
                 ),
               ),
-              onPressed: () {
-                if (atractivo.circuitoAlternativo != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RutaAlternaScreen(
-                        circuito: atractivo.circuitoAlternativo!,
-                        origenNombre: atractivo.nombre,
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        nivel == NivelAforo.saturado
-                            ? 'No hay rutas alternas registradas para este punto.'
-                            : 'Zona con tránsito fluido. No se requiere desvío.',
-                      ),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.alt_route, size: 20),
-              label: const Text(
-                'Buscar ruta alternativa',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -470,8 +666,8 @@ class _AforoScreenState extends State<AforoScreen> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: const LatLng(-13.5164, -71.9772), // Hatun Rumiyoc
-              initialZoom: 16.5,
+              initialCenter: const LatLng(-13.5159, -71.9772), // Hatun Rumiyoc
+              initialZoom: 15.8,
               onTap: (tapPosition, point) => _cerrarDetalle(),
             ),
             children: [
@@ -480,21 +676,21 @@ class _AforoScreenState extends State<AforoScreen> {
                 userAgentPackageName: 'com.turismoseguro.cusco',
               ),
 
-              // === POLÍNEA DINÁMICA: SE DIBUJA AL TOCAR UN MARCADOR CON DESVÍO ===
+              // Capa de ruta trazada en el mapa
               PolylineLayer(
                 polylines: [
-                  if (_atractivoSeleccionado != null &&
-                      _rutasDesvio.containsKey(_atractivoSeleccionado!.idAtractivo))
+                  if (_puntosRutaActiva.isNotEmpty)
                     Polyline(
-                      points: _rutasDesvio[_atractivoSeleccionado!.idAtractivo]!,
-                      strokeWidth: 4.5,
-                      color: const Color(0xFF1976D2), // Azul visible de navegación
+                      points: _puntosRutaActiva,
+                      strokeWidth: 5.0,
+                      color: const Color(0xFF1976D2),
                     ),
                 ],
               ),
-              // Círculos semafóricos de congestión
+
+              // Círculos semafóricos con radios no invasivos (22m a 32m)
               CircleLayer(
-                circles: _atractivos.map((atractivo) {
+                circles: _atractivosFiltrados.map((atractivo) {
                   final partes = atractivo.coordenadasGps.split(',');
                   final pos = LatLng(double.parse(partes[0]), double.parse(partes[1]));
                   final esSaturado = atractivo.obtenerEstadoAforo() == NivelAforo.saturado;
@@ -506,26 +702,26 @@ class _AforoScreenState extends State<AforoScreen> {
 
                   return CircleMarker(
                     point: pos,
-                    radius: esSaturado ? 55 : 35,
+                    radius: esSaturado ? 32 : 22,
                     useRadiusInMeter: true,
-                    color: color.withValues(alpha: 0.35),
+                    color: color.withValues(alpha: 0.30),
                     borderColor: color,
                     borderStrokeWidth: 2,
                   );
                 }).toList(),
               ),
+
               // Marcadores de atractivos
               MarkerLayer(
                 markers: [
-                  // Marcador de posición GPS del usuario
                   if (_ubicacionObtenida)
                     Marker(
                       point: _ubicacionUsuario,
                       width: 40,
                       height: 40,
-                      child: const Icon(Icons.my_location, color: Colors.blueAccent, size: 30),
+                      child: const Icon(Icons.my_location, color: Colors.blueAccent, size: 28),
                     ),
-                  ..._atractivos.map((atractivo) {
+                  ..._atractivosFiltrados.map((atractivo) {
                     final partes = atractivo.coordenadasGps.split(',');
                     final pos = LatLng(double.parse(partes[0]), double.parse(partes[1]));
                     final esSaturado = atractivo.obtenerEstadoAforo() == NivelAforo.saturado;
@@ -537,11 +733,11 @@ class _AforoScreenState extends State<AforoScreen> {
 
                     return Marker(
                       point: pos,
-                      width: 50,
-                      height: 50,
+                      width: 44,
+                      height: 44,
                       child: GestureDetector(
                         onTap: () => _seleccionarAtractivo(atractivo),
-                        child: Icon(Icons.location_on, color: color, size: 40),
+                        child: Icon(Icons.location_on, color: color, size: 38),
                       ),
                     );
                   }),
@@ -549,32 +745,41 @@ class _AforoScreenState extends State<AforoScreen> {
               ),
             ],
           ),
-          if (_atractivoSeleccionado == null)
-            Positioned(
-              top: 12,
-              left: 12,
-              right: 12,
-              child: Card(
-                color: const Color.fromRGBO(255, 255, 255, 0.95),
-                elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Row(
-                    children: [
-                      Icon(Icons.touch_app, color: Colors.indigo, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Toca un marcador en el mapa para ver la congestión peatonal.',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
+
+          // Filtro superior por chips
+          Positioned(
+            top: 10,
+            left: 10,
+            right: 10,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ChoiceChip(
+                    label: const Text('Todos (10)'),
+                    selected: _filtroActual == FiltroAforo.todos,
+                    onSelected: (val) => setState(() => _filtroActual = FiltroAforo.todos),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: const Text('Solo Críticos'),
+                    selected: _filtroActual == FiltroAforo.soloCriticos,
+                    selectedColor: const Color(0xFFFFCDD2),
+                    onSelected: (val) => setState(() => _filtroActual = FiltroAforo.soloCriticos),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: const Text('Zonas Libres'),
+                    selected: _filtroActual == FiltroAforo.zonasLibres,
+                    selectedColor: const Color(0xFFC8E6C9),
+                    onSelected: (val) => setState(() => _filtroActual = FiltroAforo.zonasLibres),
+                  ),
+                ],
               ),
             ),
+          ),
+
+          // Tarjeta de aforo inferior
           if (_atractivoSeleccionado != null)
             Positioned(
               bottom: 16,
@@ -586,6 +791,15 @@ class _AforoScreenState extends State<AforoScreen> {
               ),
             ),
         ],
+      ),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: _atractivoSeleccionado != null ? 220 : 0),
+        child: FloatingActionButton.small(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.indigo,
+          onPressed: () => _mapController.move(_ubicacionUsuario, 16.5),
+          child: const Icon(Icons.gps_fixed),
+        ),
       ),
     );
   }
