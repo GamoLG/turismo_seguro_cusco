@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // The Flutter Gradle Plugin must be applied after the Android plugin.
+    // Kotlin is handled by Flutter's built-in Kotlin support (AGP 9+).
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -38,9 +39,9 @@ android {
     }
 }
 
-kotlin {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 

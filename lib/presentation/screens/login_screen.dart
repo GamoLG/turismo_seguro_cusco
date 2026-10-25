@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'aforo_screen.dart';
+import 'registro_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,7 +51,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.shield_outlined, size: 72, color: Colors.indigo),
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/icon/app_icon.png',
+                        width: 76,
+                        height: 76,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'Turismo Seguro Cusco',
@@ -119,6 +130,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _ingresarComoInvitado,
                     icon: const Icon(Icons.person_outline),
                     label: const Text('Continuar como Turista Invitado', style: TextStyle(fontSize: 15)),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        '¿No tienes cuenta?',
+                        style: TextStyle(color: Colors.black87),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const RegistroScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Regístrate',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

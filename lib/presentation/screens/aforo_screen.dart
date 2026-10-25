@@ -86,112 +86,247 @@ class _AforoScreenState extends State<AforoScreen> {
     }
   }
 
-  void _mostrarDetalleAforoModal(AtractivoTuristico atractivo) {
-    final ocupacion = atractivo.calcularPorcentajeOcupacion();
-    final esSaturado = atractivo.obtenerEstadoAforo() == NivelAforo.saturado;
+  AtractivoTuristico? _atractivoSeleccionado;
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  void _seleccionarAtractivo(AtractivoTuristico atractivo) {
+    setState(() {
+      _atractivoSeleccionado = atractivo;
+    });
+    final partes = atractivo.coordenadasGps.split(',');
+    final pos = LatLng(double.parse(partes[0]), double.parse(partes[1]));
+    _mapController.move(pos, _mapController.camera.zoom);
+  }
+
+  void _cerrarDetalle() {
+    setState(() {
+      _atractivoSeleccionado = null;
+    });
+  }
+
+  Widget _buildTarjetaCongestion(AtractivoTuristico atractivo) {
+    final nivel = atractivo.obtenerEstadoAforo();
+    final double ocupacion = atractivo.calcularPorcentajeOcupacion();
+    final bool tieneAforoValido = atractivo.aforoMaximo > 0;
+
+    String etiquetaNivel;
+    Color colorNivel;
+    Color bgNivel;
+    Color borderNivel;
+
+    switch (nivel) {
+      case NivelAforo.saturado:
+        etiquetaNivel = 'Alta';
+        colorNivel = const Color(0xFFC62828); // Rojo de alto contraste
+        bgNivel = const Color(0xFFFFEBEE);
+        borderNivel = const Color(0xFFFFCDD2);
+        break;
+      case NivelAforo.moderado:
+        etiquetaNivel = 'Moderada';
+        colorNivel = const Color(0xFFE65100); // Ámbar oscuro
+        bgNivel = const Color(0xFFFFF3E0);
+        borderNivel = const Color(0xFFFFE0B2);
+        break;
+      case NivelAforo.optimo:
+        etiquetaNivel = 'Baja';
+        colorNivel = const Color(0xFF2E7D32); // Verde esmeralda oscuro
+        bgNivel = const Color(0xFFE8F5E9);
+        borderNivel = const Color(0xFFC8E6C9);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.12),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // A. Encabezado
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      atractivo.nombre,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: esSaturado ? Colors.red.shade100 : Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      esSaturado ? 'MUCHA CONGESTIÓN' : 'ZONA FLUIDA',
-                      style: TextStyle(
-                        color: esSaturado ? Colors.red.shade800 : Colors.green.shade800,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(atractivo.tramo, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-              const Divider(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    children: [
-                      Text('${atractivo.aforoActual} / ${atractivo.aforoMaximo}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const Text('Aforo Estimado', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text('${ocupacion.toStringAsFixed(1)}%',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const Text('Ocupación', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text('${atractivo.velocidadTransito.toStringAsFixed(2)} m/s',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const Text('Velocidad Marcha', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                ],
-              ),
-              if (esSaturado && atractivo.circuitoAlternativo != null) ...[
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RutaAlternaScreen(
-                            circuito: atractivo.circuitoAlternativo!,
-                            origenNombre: atractivo.nombre,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            atractivo.nombre,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.alt_route),
-                    label: const Text(
-                      'Ruta alterna: ¿A dónde ir con menos gente?',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: bgNivel,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: borderNivel, width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  color: colorNivel,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                etiquetaNivel,
+                                style: TextStyle(
+                                  color: colorNivel,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.place_outlined, size: 14, color: Colors.blueGrey.shade400),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            atractivo.tramo,
+                            style: TextStyle(
+                              color: Colors.blueGrey.shade600,
+                              fontSize: 12.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              const SizedBox(width: 4),
+              InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _cerrarDetalle,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(Icons.close, size: 18, color: Colors.blueGrey.shade400),
+                ),
+              ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 14),
+
+          // B. Indicador principal (Ocupación única con número destacado y barra de progreso)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              const Text(
+                'Nivel de ocupación',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              Text(
+                tieneAforoValido ? '${ocupacion.toStringAsFixed(1)}%' : 'No disponible',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: tieneAforoValido ? colorNivel : Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: tieneAforoValido ? (ocupacion / 100.0).clamp(0.0, 1.0) : 0.0,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFF1F5F9),
+              valueColor: AlwaysStoppedAnimation<Color>(colorNivel),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // C. Acción principal: «Buscar ruta alternativa»
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                if (atractivo.circuitoAlternativo != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RutaAlternaScreen(
+                        circuito: atractivo.circuitoAlternativo!,
+                        origenNombre: atractivo.nombre,
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        nivel == NivelAforo.saturado
+                            ? 'No hay rutas alternas registradas para este punto.'
+                            : 'Zona con tránsito fluido. No se requiere desvío.',
+                      ),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.alt_route, size: 20),
+              label: const Text(
+                'Buscar ruta alternativa',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -207,9 +342,10 @@ class _AforoScreenState extends State<AforoScreen> {
         children: [
           FlutterMap(
             mapController: _mapController,
-            options: const MapOptions(
-              initialCenter: LatLng(-13.5164, -71.9772), // Hatun Rumiyoc
+            options: MapOptions(
+              initialCenter: const LatLng(-13.5164, -71.9772), // Hatun Rumiyoc
               initialZoom: 16.5,
+              onTap: (tapPosition, point) => _cerrarDetalle(),
             ),
             children: [
               TileLayer(
@@ -232,7 +368,7 @@ class _AforoScreenState extends State<AforoScreen> {
                     point: pos,
                     radius: esSaturado ? 55 : 35,
                     useRadiusInMeter: true,
-                    color: color.withOpacity(0.35),
+                    color: color.withValues(alpha: 0.35),
                     borderColor: color,
                     borderStrokeWidth: 2,
                   );
@@ -264,7 +400,7 @@ class _AforoScreenState extends State<AforoScreen> {
                       width: 50,
                       height: 50,
                       child: GestureDetector(
-                        onTap: () => _mostrarDetalleAforoModal(atractivo),
+                        onTap: () => _seleccionarAtractivo(atractivo),
                         child: Icon(Icons.location_on, color: color, size: 40),
                       ),
                     );
@@ -273,31 +409,42 @@ class _AforoScreenState extends State<AforoScreen> {
               ),
             ],
           ),
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 12,
-            child: Card(
-              color: Colors.white.withOpacity(0.95),
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.touch_app, color: Colors.indigo, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Toca el marcador rojo (12 Ángulos) para ver saturación y solicitar desvío.',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          if (_atractivoSeleccionado == null)
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Card(
+                color: const Color.fromRGBO(255, 255, 255, 0.95),
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.touch_app, color: Colors.indigo, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Toca un marcador en el mapa para ver la congestión peatonal.',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          if (_atractivoSeleccionado != null)
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: SafeArea(
+                top: false,
+                child: _buildTarjetaCongestion(_atractivoSeleccionado!),
+              ),
+            ),
         ],
       ),
     );
