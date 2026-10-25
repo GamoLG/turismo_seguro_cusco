@@ -21,44 +21,171 @@ class _AforoScreenState extends State<AforoScreen> {
 
   final List<AtractivoTuristico> _atractivos = [
     AtractivoTuristico(
-      idAtractivo: 'atr_01',
-      nombre: 'Piedra de los 12 Ángulos / Hatun Rumiyoc',
+      idAtractivo: 'hatun_rumiyoc',
+      nombre: 'Calle Hatun Rumiyoc (Piedra 12 Ángulos)',
       tramo: 'Calle Hatun Rumiyoc (Triunfo - San Blas)',
-      coordenadasGps: '-13.5164,-71.9772',
-      aforoMaximo: 450,
-      aforoActual: 418,
+      coordenadasGps: '-13.5159,-71.9772',
+      aforoMaximo: 200,
+      aforoActual: 178,
       velocidadTransito: 0.18,
       circuitoAlternativo: CircuitoAlternativo(
-        idCircuito: 'circ_01',
+        idCircuito: 'circuito_san_cristobal',
         nombreCircuito: 'Circuito Tradicional San Cristóbal y Siete Borreguitos',
         tiempoEstimadoMin: 18,
         distanciaKm: 1.2,
         porcentajeCongestion: 15,
-        descripcionCultural: 'Ruta patrimonial alterna que bordea Choquechaka y Saphy, reduciendo el desgaste litico.',
+        descripcionCultural: 'Ruta patrimonial alterna que bordea Choquechaka y Saphy, reduciendo el desgaste lítico.',
         garantiaSeguridad: 'Patrullaje permanente de la Policía de Turismo (POLTUR)',
       ),
     ),
     AtractivoTuristico(
-      idAtractivo: 'atr_02',
+      idAtractivo: 'cuesta_san_blas',
       nombre: 'Cuesta de San Blas',
       tramo: 'Acceso Barrio Artesanal',
-      coordenadasGps: '-13.5150,-71.9750',
-      aforoMaximo: 300,
-      aforoActual: 185,
-      velocidadTransito: 0.75,
+      coordenadasGps: '-13.5151,-71.9763',
+      aforoMaximo: 160,
+      aforoActual: 140,
+      velocidadTransito: 0.25,
+      circuitoAlternativo: CircuitoAlternativo(
+        idCircuito: 'calle_choquechaka',
+        nombreCircuito: 'Desvío Choquechaka y Nazarenas',
+        tiempoEstimadoMin: 12,
+        distanciaKm: 0.8,
+        porcentajeCongestion: 20,
+        descripcionCultural: 'Vía alterna empedrada y tranquila paralela a la Cuesta de San Blas.',
+        garantiaSeguridad: 'Zona monitoreada con cámaras y serenazgo',
+      ),
+    ),
+    AtractivoTuristico(
+      idAtractivo: 'calle_triunfo',
+      nombre: 'Calle Triunfo',
+      tramo: 'Plaza de Armas - Hatun Rumiyoc',
+      coordenadasGps: '-13.5164,-71.9778',
+      aforoMaximo: 220,
+      aforoActual: 195,
+      velocidadTransito: 0.20,
+      circuitoAlternativo: CircuitoAlternativo(
+        idCircuito: 'plazoleta_nazarenas',
+        nombreCircuito: 'Corredor Cultural Palacio Inka Rocha - Nazarenas',
+        tiempoEstimadoMin: 10,
+        distanciaKm: 0.6,
+        porcentajeCongestion: 22,
+        descripcionCultural: 'Paso por plazoleta monumental y museos coloniales.',
+        garantiaSeguridad: 'Presencia constante de seguridad ciudadana',
+      ),
+    ),
+    AtractivoTuristico(
+      idAtractivo: 'plaza_san_blas',
+      nombre: 'Plazoleta de San Blas',
+      tramo: 'Zona de Galerías y Templos',
+      coordenadasGps: '-13.5147,-71.9754',
+      aforoMaximo: 350,
+      aforoActual: 210,
+      velocidadTransito: 0.85,
       circuitoAlternativo: null,
     ),
     AtractivoTuristico(
-      idAtractivo: 'atr_03',
-      nombre: 'Plazoleta San Cristóbal',
-      tramo: 'Mirador Panorámico',
-      coordenadasGps: '-13.5135,-71.9790',
-      aforoMaximo: 500,
-      aforoActual: 110,
+      idAtractivo: 'calle_loreto',
+      nombre: 'Calle Loreto (Intikijllu)',
+      tramo: 'Acllahuasi - Compañía de Jesús',
+      coordenadasGps: '-13.5173,-71.9787',
+      aforoMaximo: 180,
+      aforoActual: 115,
+      velocidadTransito: 0.90,
+      circuitoAlternativo: CircuitoAlternativo(
+        idCircuito: 'calle_maruri',
+        nombreCircuito: 'Desfogue Peatonal Calle Maruri',
+        tiempoEstimadoMin: 8,
+        distanciaKm: 0.5,
+        porcentajeCongestion: 28,
+        descripcionCultural: 'Vía ancha de salida patrimonial hacia la Avenida El Sol.',
+        garantiaSeguridad: 'Patrullaje integrado centro histórico',
+      ),
+    ),
+    AtractivoTuristico(
+      idAtractivo: 'calle_maruri',
+      nombre: 'Calle Maruri - Cabildo',
+      tramo: 'Av. El Sol - Pampa del Castillo',
+      coordenadasGps: '-13.5178,-71.9775',
+      aforoMaximo: 450,
+      aforoActual: 130,
+      velocidadTransito: 1.40,
+      circuitoAlternativo: null,
+    ),
+    AtractivoTuristico(
+      idAtractivo: 'calle_choquechaka',
+      nombre: 'Calle Choquechaka',
+      tramo: 'San Blas - Saphy',
+      coordenadasGps: '-13.5142,-71.9760',
+      aforoMaximo: 320,
+      aforoActual: 75,
+      velocidadTransito: 1.30,
+      circuitoAlternativo: null,
+    ),
+    AtractivoTuristico(
+      idAtractivo: 'siete_borreguitos',
+      nombre: 'Callejón Siete Borreguitos y Sapantiana',
+      tramo: 'Pumacurco - Acueducto',
+      coordenadasGps: '-13.5135,-71.9780',
+      aforoMaximo: 250,
+      aforoActual: 50,
+      velocidadTransito: 1.25,
+      circuitoAlternativo: null,
+    ),
+    AtractivoTuristico(
+      idAtractivo: 'plazoleta_nazarenas',
+      nombre: 'Plazoleta de las Nazarenas',
+      tramo: 'Museo Precolombino - Palacio Nazarenas',
+      coordenadasGps: '-13.5148,-71.9786',
+      aforoMaximo: 380,
+      aforoActual: 85,
       velocidadTransito: 1.35,
       circuitoAlternativo: null,
     ),
+    AtractivoTuristico(
+      idAtractivo: 'circuito_san_cristobal',
+      nombre: 'Mirador San Cristóbal y Saphy',
+      tramo: 'Mirador Panorámico',
+      coordenadasGps: '-13.5132,-71.9804',
+      aforoMaximo: 500,
+      aforoActual: 60,
+      velocidadTransito: 1.50,
+      circuitoAlternativo: null,
+    ),
   ];
+
+// Trazados de desvío georreferenciados para cada punto crítico
+  Map<String, List<LatLng>> get _rutasDesvio => const {
+    // Desvío Hatun Rumiyoc -> Choquechaka -> Pumacurco -> San Cristóbal
+    'hatun_rumiyoc': const [
+      LatLng(-13.5159, -71.9772), // Inicio: Calle Hatun Rumiyoc
+      LatLng(-13.5154, -71.9765), // Cruce con Choquechaka
+      LatLng(-13.5147, -71.9761), // Siguiendo Choquechaka
+      LatLng(-13.5140, -71.9767), // Choquechaka norte
+      LatLng(-13.5135, -71.9773), // Giro hacia Siete Borreguitos / Pumacurco
+      LatLng(-13.5133, -71.9785), // Cruce Pumacurco
+      LatLng(-13.5131, -71.9796), // Subida San Cristóbal
+      LatLng(-13.5132, -71.9804), // Llegada: Plazoleta San Cristóbal
+    ],
+    // Cuesta San Blas -> Choquechaka -> Nazarenas
+    'cuesta_san_blas': [
+      LatLng(-13.5151, -71.9763), // Cuesta San Blas
+      LatLng(-13.5142, -71.9760), // Choquechaka
+      LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+    ],
+    // Calle Triunfo -> Ataúd -> Plazoleta Nazarenas
+    'calle_triunfo': [
+      LatLng(-13.5164, -71.9778), // Calle Triunfo
+      LatLng(-13.5155, -71.9790), // Ataúd
+      LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+    ],
+    // Calle Loreto -> Maruri
+    'calle_loreto': [
+      LatLng(-13.5173, -71.9787), // Calle Loreto
+      LatLng(-13.5178, -71.9775), // Calle Maruri
+    ],
+  };
+
 
   @override
   void initState() {
@@ -351,6 +478,19 @@ class _AforoScreenState extends State<AforoScreen> {
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.turismoseguro.cusco',
+              ),
+
+              // === POLÍNEA DINÁMICA: SE DIBUJA AL TOCAR UN MARCADOR CON DESVÍO ===
+              PolylineLayer(
+                polylines: [
+                  if (_atractivoSeleccionado != null &&
+                      _rutasDesvio.containsKey(_atractivoSeleccionado!.idAtractivo))
+                    Polyline(
+                      points: _rutasDesvio[_atractivoSeleccionado!.idAtractivo]!,
+                      strokeWidth: 4.5,
+                      color: const Color(0xFF1976D2), // Azul visible de navegación
+                    ),
+                ],
               ),
               // Círculos semafóricos de congestión
               CircleLayer(

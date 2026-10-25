@@ -1,40 +1,112 @@
-[
-  {
-    "idAtractivo": "atr_01",
-    "nombre": "Piedra de los 12 Ángulos / Hatun Rumiyoc",
-    "tramo": "Calle Hatun Rumiyoc (Triunfo - San Blas)",
-    "coordenadasGps": "-13.5164,-71.9772",
-    "aforoMaximo": 450,
-    "aforoActual": 418,
-    "velocidadTransito": 0.18,
-    "circuitoAlternativo": {
-      "idCircuito": "circ_01",
-      "nombreCircuito": "Circuito Tradicional San Cristóbal y Siete Borreguitos",
-      "tiempoEstimadoMin": 18,
-      "distanciaKm": 1.2,
-      "porcentajeCongestion": 15,
-      "descripcionCultural": "Ruta patrimonial alterna que bordea Choquechaka y Saphy, reduciendo el desgaste litico.",
-      "garantiaSeguridad": "Patrullaje permanente de la Policía de Turismo (POLTUR)"
+  [
+    {
+      "id": "hatun_rumiyoc",
+      "nombre": "Calle Hatun Rumiyoc (Piedra 12 Ángulos)",
+      "descripcion": "Corredor lítico estrecho con alto embotellamiento peatonal hacia San Blas.",
+      "latitud": -13.5159,
+      "longitud": -71.9772,
+      "capacidad_maxima": 200,
+      "aforo_actual": 178,
+      "nivel_aforo": "critico",
+      "circuito_alternativo_id": "circuito_san_cristobal"
+    },
+    {
+      "id": "cuesta_san_blas",
+      "nombre": "Cuesta de San Blas",
+      "descripcion": "Vía peatonal empinada de acceso principal a galerías artesanales.",
+      "latitud": -13.5151,
+      "longitud": -71.9763,
+      "capacidad_maxima": 160,
+      "aforo_actual": 140,
+      "nivel_aforo": "critico",
+      "circuito_alternativo_id": "calle_choquechaka"
+    },
+    {
+      "id": "calle_triunfo",
+      "nombre": "Calle Triunfo",
+      "descripcion": "Conector directo entre Plaza de Armas y Hatun Rumiyoc.",
+      "latitud": -13.5164,
+      "longitud": -71.9778,
+      "capacidad_maxima": 220,
+      "aforo_actual": 195,
+      "nivel_aforo": "critico",
+      "circuito_alternativo_id": "plazoleta_nazarenas"
+    },
+    {
+      "id": "plaza_san_blas",
+      "nombre": "Plazoleta de San Blas",
+      "descripcion": "Espacio público abierto de descanso, restaurantes y mirador intermedio.",
+      "latitud": -13.5147,
+      "longitud": -71.9754,
+      "capacidad_maxima": 350,
+      "aforo_actual": 210,
+      "nivel_aforo": "moderado",
+      "circuito_alternativo_id": null
+    },
+    {
+      "id": "calle_loreto",
+      "nombre": "Calle Loreto (Intikijllu)",
+      "descripcion": "Callejón patrimonial entre el Acllahuasi y la Compañía de Jesús.",
+      "latitud": -13.5173,
+      "longitud": -71.9787,
+      "capacidad_maxima": 180,
+      "aforo_actual": 115,
+      "nivel_aforo": "moderado",
+      "circuito_alternativo_id": "calle_maruri"
+    },
+    {
+      "id": "calle_maruri",
+      "nombre": "Calle Maruri - Cabildo",
+      "descripcion": "Vía ancha de desfogue vehicular y peatonal hacia Av. El Sol.",
+      "latitud": -13.5178,
+      "longitud": -71.9775,
+      "capacidad_maxima": 450,
+      "aforo_actual": 130,
+      "nivel_aforo": "normal",
+      "circuito_alternativo_id": null
+    },
+    {
+      "id": "calle_choquechaka",
+      "nombre": "Calle Choquechaka",
+      "descripcion": "Corredor tradicional empedrado paralelo a la Cuesta de San Blas.",
+      "latitud": -13.5142,
+      "longitud": -71.9760,
+      "capacidad_maxima": 320,
+      "aforo_actual": 75,
+      "nivel_aforo": "normal",
+      "circuito_alternativo_id": null
+    },
+    {
+      "id": "siete_borreguitos",
+      "nombre": "Callejón Siete Borreguitos y Sapantiana",
+      "descripcion": "Ruta panorámica de escalinatas hacia el Acueducto Colonial.",
+      "latitud": -13.5135,
+      "longitud": -71.9780,
+      "capacidad_maxima": 250,
+      "aforo_actual": 50,
+      "nivel_aforo": "normal",
+      "circuito_alternativo_id": null
+    },
+    {
+      "id": "plazoleta_nazarenas",
+      "nombre": "Plazoleta de las Nazarenas",
+      "descripcion": "Zona monumental amplia frente al Museo de Arte Precolombino.",
+      "latitud": -13.5148,
+      "longitud": -71.9786,
+      "capacidad_maxima": 380,
+      "aforo_actual": 85,
+      "nivel_aforo": "normal",
+      "circuito_alternativo_id": null
+    },
+    {
+      "id": "circuito_san_cristobal",
+      "nombre": "Mirador San Cristóbal y Saphy",
+      "descripcion": "Circuito patrimonial alto de menor desgaste lítico y vista integral de la ciudad.",
+      "latitud": -13.5132,
+      "longitud": -71.9804,
+      "capacidad_maxima": 500,
+      "aforo_actual": 60,
+      "nivel_aforo": "normal",
+      "circuito_alternativo_id": null
     }
-  },
-  {
-    "idAtractivo": "atr_02",
-    "nombre": "Cuesta de San Blas",
-    "tramo": "Acceso Barrio Artesanal",
-    "coordenadasGps": "-13.5150,-71.9750",
-    "aforoMaximo": 300,
-    "aforoActual": 185,
-    "velocidadTransito": 0.75,
-    "circuitoAlternativo": null
-  },
-  {
-    "idAtractivo": "atr_03",
-    "nombre": "Plazoleta San Cristóbal",
-    "tramo": "Mirador Panorámico",
-    "coordenadasGps": "-13.5135,-71.9790",
-    "aforoMaximo": 500,
-    "aforoActual": 110,
-    "velocidadTransito": 1.35,
-    "circuitoAlternativo": null
-  }
-]
+  ]
