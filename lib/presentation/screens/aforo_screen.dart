@@ -950,65 +950,66 @@ class _AforoScreenState extends State<AforoScreen> {
                                 ),
                               );
                             },
+                            
                             optionsViewBuilder: (context, onSelected, options) {
                               return Align(
                                 alignment: Alignment.topLeft,
                                 child: Material(
+                                  color: Colors.white, // El color va en el Material ancestor
                                   elevation: 6,
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Container(
+                                  clipBehavior: Clip.antiAlias, // Asegura que el efecto respete las esquinas redondeadas
+                                  child: SizedBox(
                                     width: MediaQuery.of(context).size.width - 48,
-                                    constraints: const BoxConstraints(maxHeight: 250),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: ListView.separated(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
-                                      shrinkWrap: true,
-                                      itemCount: options.length,
-                                      separatorBuilder: (_, __) => const Divider(height: 1),
-                                      itemBuilder: (context, index) {
-                                        final opcion = options.elementAt(index);
-                                        final esLocal = !opcion.esExterno;
-                                        final esCritico = esLocal &&
-                                            opcion.atractivoLocal!.obtenerEstadoAforo() ==
-                                                NivelAforo.saturado;
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(maxHeight: 250),
+                                      child: ListView.separated(
+                                        padding: const EdgeInsets.symmetric(vertical: 4),
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        separatorBuilder: (_, __) => const Divider(height: 1),
+                                        itemBuilder: (context, index) {
+                                          final opcion = options.elementAt(index);
+                                          final esLocal = !opcion.esExterno;
+                                          final esCritico = esLocal &&
+                                              opcion.atractivoLocal!.obtenerEstadoAforo() ==
+                                                  NivelAforo.saturado;
 
-                                        return ListTile(
-                                          dense: true,
-                                          leading: Icon(
-                                            esLocal ? Icons.local_activity : Icons.place,
-                                            size: 20,
-                                            color: esLocal
-                                                ? (esCritico ? Colors.red : Colors.green)
-                                                : Colors.indigo,
-                                          ),
-                                          title: Text(
-                                            opcion.titulo,
-                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          subtitle: Text(
-                                            opcion.subtitulo,
-                                            style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          trailing: esLocal
-                                              ? Text(
-                                            '${opcion.atractivoLocal!.calcularPorcentajeOcupacion().toStringAsFixed(0)}%',
-                                            style: TextStyle(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: esCritico ? Colors.red : Colors.green.shade700,
+                                          return ListTile(
+                                            dense: true,
+                                            leading: Icon(
+                                              esLocal ? Icons.local_activity : Icons.place,
+                                              size: 20,
+                                              color: esLocal
+                                                  ? (esCritico ? Colors.red : Colors.green)
+                                                  : Colors.indigo,
                                             ),
-                                          )
-                                              : const Icon(Icons.arrow_outward, size: 14, color: Colors.grey),
-                                          onTap: () => onSelected(opcion),
-                                        );
-                                      },
+                                            title: Text(
+                                              opcion.titulo,
+                                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            subtitle: Text(
+                                              opcion.subtitulo,
+                                              style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            trailing: esLocal
+                                                ? Text(
+                                              '${opcion.atractivoLocal!.calcularPorcentajeOcupacion().toStringAsFixed(0)}%',
+                                              style: TextStyle(
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: esCritico ? Colors.red : Colors.green.shade700,
+                                              ),
+                                            )
+                                                : const Icon(Icons.arrow_outward, size: 14, color: Colors.grey),
+                                            onTap: () => onSelected(opcion),
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
