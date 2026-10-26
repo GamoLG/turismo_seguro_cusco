@@ -234,8 +234,10 @@ Cusco — Perú — 2026
 El proyecto cuenta con una batería de pruebas automatizadas que cubren la arquitectura de software: capa de dominio, servicios de enrutamiento y componentes de interfaz reactiva.
 
 ### Métricas de Calidad
-- **Batería de Pruebas:** 50/50 ejecutadas exitosamente (100% pass rate).
-- **Cobertura de Código (Line Coverage):** **90.37%** (Superando el umbral mínimo exigido del 90%).
+- **Batería de Pruebas:** 51/51 pruebas unitarias y de widgets ejecutadas exitosamente (100% pass rate).
+- **Cobertura de Código (Line Coverage):** **90.44%** (Superando el umbral mínimo exigido del 90.00%).
+- **Análisis Estático:** `flutter analyze --no-fatal-infos` sin errores bloqueantes.
+- **Integración Continua (CI/CD):** Pipeline de GitHub Actions validado en verde (`qa_validation`).
 
 ### Reproducción de Pruebas y Auditoría Local
 
