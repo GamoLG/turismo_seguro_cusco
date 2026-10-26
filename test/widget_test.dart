@@ -19,7 +19,7 @@ void main() {
           return 0; // LocationPermission.denied
         }
         return 0;
-      },
+       },
     );
   });
 
@@ -452,6 +452,25 @@ void main() {
 
       expect(find.text('Ingreso por Choquechaka'), findsOneWidget);
       expect(find.text('Llegada a Nazarenas'), findsOneWidget);
+    });
+    testWidgets('Presionar el icono de cerrar sesión en AforoScreen navega hacia el Login', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AforoScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Busca el botón de cerrar sesión en el AppBar
+      final botonLogout = find.byTooltip('Cerrar sesión');
+      expect(botonLogout, findsOneWidget);
+
+      // Presiona el botón de logout
+      await tester.tap(botonLogout);
+      await tester.pumpAndSettle();
+
+      // Verifica que AforoScreen ya no esté y se haya montado la nueva ruta
+      expect(find.byType(AforoScreen), findsNothing);
     });
   });
 }

@@ -10,6 +10,7 @@ import '../../domain/models/circuito_alternativo.dart';
 import '../../domain/models/nivel_aforo.dart';
 import 'ruta_alterna_screen.dart';
 import '../../data/services/osrm_routing_service.dart';
+import 'login_screen.dart';
 
 enum FiltroAforo { todos, soloCriticos, zonasLibres }
 
@@ -861,6 +862,18 @@ class _AforoScreenState extends State<AforoScreen> {
         title: const Text('Mapa Peatonal en Vivo - Cusco'),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (route) => false);
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
