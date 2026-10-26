@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import '../../domain/models/atractivo_turistico.dart';
 import '../../domain/models/circuito_alternativo.dart';
 import '../../domain/models/nivel_aforo.dart';
@@ -9,6 +12,23 @@ import 'ruta_alterna_screen.dart';
 import '../../data/services/osrm_routing_service.dart';
 
 enum FiltroAforo { todos, soloCriticos, zonasLibres }
+
+// Modelo para encapsular resultados tanto locales como de OpenStreetMap
+class ResultadoBusqueda {
+  final String titulo;
+  final String subtitulo;
+  final LatLng coordenada;
+  final AtractivoTuristico? atractivoLocal;
+  final bool esExterno;
+
+  ResultadoBusqueda({
+    required this.titulo,
+    required this.subtitulo,
+    required this.coordenada,
+    this.atractivoLocal,
+    this.esExterno = false,
+  });
+}
 
 class AforoScreen extends StatefulWidget {
   const AforoScreen({super.key});
@@ -23,6 +43,7 @@ class _AforoScreenState extends State<AforoScreen> {
   bool _ubicacionObtenida = false;
 
   AtractivoTuristico? _atractivoSeleccionado;
+  ResultadoBusqueda? _lugarExternoSeleccionado;
   String? _circuitoSeleccionadoId;
   List<LatLng> _puntosRutaActiva = [];
   bool _cargandoRuta = false;
@@ -163,7 +184,6 @@ class _AforoScreenState extends State<AforoScreen> {
     ),
   ];
 
-  // Catálogo de opciones de desvío con trazados peatonales optimizados directos
   final Map<String, List<Map<String, dynamic>>> _opcionesDesvio = {
     'hatun_rumiyoc': [
       {
@@ -172,15 +192,14 @@ class _AforoScreenState extends State<AforoScreen> {
         'tiempo': '15 min',
         'distancia': '0.9 km',
         'destino': const LatLng(-13.5132, -71.9804),
-        // Camino peatonal directo por esquinas reales (evita rodeos largos)
         'puntosDirectos': const [
-          LatLng(-13.5159, -71.9772), // Hatun Rumiyoc
-          LatLng(-13.5154, -71.9765), // Salida a Choquechaka
-          LatLng(-13.5147, -71.9761), // Recta Choquechaka
-          LatLng(-13.5138, -71.9770), // Giro hacia Siete Borreguitos
-          LatLng(-13.5134, -71.9782), // Siete Borreguitos
-          LatLng(-13.5131, -71.9796), // Arco Iris / Saphy
-          LatLng(-13.5132, -71.9804), // Plazoleta San Cristóbal
+          LatLng(-13.5159, -71.9772),
+          LatLng(-13.5154, -71.9765),
+          LatLng(-13.5147, -71.9761),
+          LatLng(-13.5138, -71.9770),
+          LatLng(-13.5134, -71.9782),
+          LatLng(-13.5131, -71.9796),
+          LatLng(-13.5132, -71.9804),
         ],
       },
       {
@@ -190,10 +209,10 @@ class _AforoScreenState extends State<AforoScreen> {
         'distancia': '0.5 km',
         'destino': const LatLng(-13.5148, -71.9786),
         'puntosDirectos': const [
-          LatLng(-13.5159, -71.9772), // Hatun Rumiyoc
-          LatLng(-13.5157, -71.9776), // Calle Palacio
-          LatLng(-13.5150, -71.9783), // Subida Córdoba del Tucumán
-          LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+          LatLng(-13.5159, -71.9772),
+          LatLng(-13.5157, -71.9776),
+          LatLng(-13.5150, -71.9783),
+          LatLng(-13.5148, -71.9786),
         ],
       },
     ],
@@ -205,9 +224,9 @@ class _AforoScreenState extends State<AforoScreen> {
         'distancia': '0.6 km',
         'destino': const LatLng(-13.5148, -71.9786),
         'puntosDirectos': const [
-          LatLng(-13.5151, -71.9763), // Cuesta San Blas
-          LatLng(-13.5146, -71.9762), // Cruce Choquechaka
-          LatLng(-13.5148, -71.9786), // Conector Nazarenas
+          LatLng(-13.5151, -71.9763),
+          LatLng(-13.5146, -71.9762),
+          LatLng(-13.5148, -71.9786),
         ],
       },
     ],
@@ -219,9 +238,9 @@ class _AforoScreenState extends State<AforoScreen> {
         'distancia': '0.5 km',
         'destino': const LatLng(-13.5148, -71.9786),
         'puntosDirectos': const [
-          LatLng(-13.5164, -71.9778), // Triunfo
-          LatLng(-13.5155, -71.9790), // Ataúd
-          LatLng(-13.5148, -71.9786), // Plazoleta Nazarenas
+          LatLng(-13.5164, -71.9778),
+          LatLng(-13.5155, -71.9790),
+          LatLng(-13.5148, -71.9786),
         ],
       },
     ],
@@ -233,8 +252,8 @@ class _AforoScreenState extends State<AforoScreen> {
         'distancia': '0.4 km',
         'destino': const LatLng(-13.5178, -71.9775),
         'puntosDirectos': const [
-          LatLng(-13.5173, -71.9787), // Loreto
-          LatLng(-13.5178, -71.9775), // Maruri
+          LatLng(-13.5173, -71.9787),
+          LatLng(-13.5178, -71.9775),
         ],
       },
     ],
@@ -278,9 +297,74 @@ class _AforoScreenState extends State<AforoScreen> {
     }
   }
 
+  // BUSCADOR HÍBRIDO (LOCAL + OPENSTREETMAP NOMINATIM CUSCO)
+  Future<Iterable<ResultadoBusqueda>> _ejecutarBusqueda(String query) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return const [];
+
+    List<ResultadoBusqueda> resultados = [];
+
+    // 1. Coincidencias en los atractivos locales (prioridad con semáforo)
+    final locales = _atractivos.where((a) =>
+    a.nombre.toLowerCase().contains(q) ||
+        a.tramo.toLowerCase().contains(q));
+
+    for (var a in locales) {
+      final partes = a.coordenadasGps.split(',');
+      resultados.add(
+        ResultadoBusqueda(
+          titulo: a.nombre,
+          subtitulo: a.tramo,
+          coordenada: LatLng(double.parse(partes[0]), double.parse(partes[1])),
+          atractivoLocal: a,
+          esExterno: false,
+        ),
+      );
+    }
+
+    // 2. Si el texto tiene al menos 3 caracteres, consulta OpenStreetMap acotado a Cusco
+    if (q.length >= 3) {
+      try {
+        final url = Uri.parse(
+          'https://nominatim.openstreetmap.org/search?'
+              'q=${Uri.encodeComponent(query + ", Cusco")}&format=json&addressdetails=1&limit=4'
+              '&viewbox=-72.01,-13.48,-71.93,-13.56&bounded=1',
+        );
+
+        final res = await http.get(url, headers: {
+          'User-Agent': 'TurismoSeguroCusco/1.0 (contacto@unsaac.edu.pe)',
+        }).timeout(const Duration(seconds: 2));
+
+        if (res.statusCode == 200) {
+          final List data = json.decode(res.body);
+          for (var item in data) {
+            final lat = double.tryParse(item['lat'] ?? '');
+            final lon = double.tryParse(item['lon'] ?? '');
+            if (lat != null && lon != null) {
+              final nombre = item['name'] ?? item['display_name'].toString().split(',').first;
+              resultados.add(
+                ResultadoBusqueda(
+                  titulo: nombre,
+                  subtitulo: item['display_name'] ?? 'Cusco, Perú',
+                  coordenada: LatLng(lat, lon),
+                  esExterno: true,
+                ),
+              );
+            }
+          }
+        }
+      } catch (_) {
+        // En caso de corte de red, se preservan los resultados locales
+      }
+    }
+
+    return resultados;
+  }
+
   void _seleccionarAtractivo(AtractivoTuristico atractivo) {
     setState(() {
       _atractivoSeleccionado = atractivo;
+      _lugarExternoSeleccionado = null;
       _circuitoSeleccionadoId = null;
       _puntosRutaActiva = [];
       _cargandoRuta = false;
@@ -290,16 +374,27 @@ class _AforoScreenState extends State<AforoScreen> {
     _mapController.move(pos, 16.5);
   }
 
+  void _seleccionarLugarExterno(ResultadoBusqueda lugar) {
+    setState(() {
+      _lugarExternoSeleccionado = lugar;
+      _atractivoSeleccionado = null;
+      _circuitoSeleccionadoId = null;
+      _puntosRutaActiva = [];
+      _cargandoRuta = false;
+    });
+    _mapController.move(lugar.coordenada, 17.0);
+  }
+
   void _cerrarDetalle() {
     setState(() {
       _atractivoSeleccionado = null;
+      _lugarExternoSeleccionado = null;
       _circuitoSeleccionadoId = null;
       _puntosRutaActiva = [];
       _cargandoRuta = false;
     });
   }
 
-  // SOLO DIBUJA LA RUTA EN EL MAPA (NO ABRE LA OTRA PANTALLA)
   Future<void> _seleccionarRuta(Map<String, dynamic> opcion) async {
     final String id = opcion['id'] as String;
 
@@ -322,7 +417,6 @@ class _AforoScreenState extends State<AforoScreen> {
 
     List<LatLng> rutaCalculada = await OsrmRoutingService.obtenerRutaPeatonal(origen, destino);
 
-    // Si OSRM no responde o devuelve una ruta con rodeos innecesarios, se usa la ruta peatonal directa
     if (rutaCalculada.isEmpty || rutaCalculada.length > 80) {
       rutaCalculada = List<LatLng>.from(opcion['puntosDirectos'] as List);
     }
@@ -333,13 +427,12 @@ class _AforoScreenState extends State<AforoScreen> {
         _cargandoRuta = false;
       });
 
-      // Auto-centra el mapa para mostrar la ruta completa sin salirse de la pantalla
       if (_puntosRutaActiva.isNotEmpty) {
         final bounds = LatLngBounds.fromPoints(_puntosRutaActiva);
         _mapController.fitCamera(
           CameraFit.bounds(
             bounds: bounds,
-            padding: const EdgeInsets.only(top: 80, bottom: 260, left: 45, right: 45),
+            padding: const EdgeInsets.only(top: 140, bottom: 260, left: 45, right: 45),
           ),
         );
       }
@@ -400,7 +493,6 @@ class _AforoScreenState extends State<AforoScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Encabezado
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -487,8 +579,6 @@ class _AforoScreenState extends State<AforoScreen> {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Nivel de Ocupación
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -516,8 +606,6 @@ class _AforoScreenState extends State<AforoScreen> {
                 valueColor: AlwaysStoppedAnimation<Color>(colorNivel),
               ),
             ),
-
-            // Selector de Rutas de Desvío (Solo visible si está saturado y tiene desvíos asignados)
             if (esSaturado && tieneOpcionesDesvio) ...[
               const SizedBox(height: 12),
               Row(
@@ -544,7 +632,6 @@ class _AforoScreenState extends State<AforoScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 5.0),
                   child: InkWell(
-                    // Al tocar la opción, solo traza la línea azul en el mapa
                     onTap: () => _seleccionarRuta(opcion),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
@@ -614,10 +701,7 @@ class _AforoScreenState extends State<AforoScreen> {
                 ),
               ),
             ],
-
             const SizedBox(height: 10),
-
-            // Botón explícito para ir a la pantalla de detalle
             if (atractivo.circuitoAlternativo != null)
               SizedBox(
                 width: double.infinity,
@@ -653,6 +737,79 @@ class _AforoScreenState extends State<AforoScreen> {
     );
   }
 
+  // Tarjeta informativa si el usuario buscó un lugar general fuera del monitoreo de aforo
+  Widget _buildTarjetaLugarExterno(ResultadoBusqueda lugar) {
+    return Container(
+      padding: const EdgeInsets.all(14.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.15),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.location_city, color: Colors.indigo, size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  lugar.titulo,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _cerrarDetalle,
+                child: const Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: Icon(Icons.close, size: 18, color: Colors.grey),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            lugar.subtitulo,
+            style: TextStyle(fontSize: 12, color: Colors.blueGrey.shade600),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.info_outline, size: 15, color: Colors.blueGrey),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Lugar georreferenciado vía OSM. Fuera del área de aforo lítico crítico.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF475569)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -666,7 +823,7 @@ class _AforoScreenState extends State<AforoScreen> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: const LatLng(-13.5159, -71.9772), // Hatun Rumiyoc
+              initialCenter: const LatLng(-13.5159, -71.9772),
               initialZoom: 15.8,
               onTap: (tapPosition, point) => _cerrarDetalle(),
             ),
@@ -675,8 +832,6 @@ class _AforoScreenState extends State<AforoScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.turismoseguro.cusco',
               ),
-
-              // Capa de ruta trazada en el mapa
               PolylineLayer(
                 polylines: [
                   if (_puntosRutaActiva.isNotEmpty)
@@ -687,8 +842,6 @@ class _AforoScreenState extends State<AforoScreen> {
                     ),
                 ],
               ),
-
-              // Círculos semafóricos con radios no invasivos (22m a 32m)
               CircleLayer(
                 circles: _atractivosFiltrados.map((atractivo) {
                   final partes = atractivo.coordenadasGps.split(',');
@@ -710,8 +863,6 @@ class _AforoScreenState extends State<AforoScreen> {
                   );
                 }).toList(),
               ),
-
-              // Marcadores de atractivos
               MarkerLayer(
                 markers: [
                   if (_ubicacionObtenida)
@@ -720,6 +871,14 @@ class _AforoScreenState extends State<AforoScreen> {
                       width: 40,
                       height: 40,
                       child: const Icon(Icons.my_location, color: Colors.blueAccent, size: 28),
+                    ),
+                  // Marcador de lugar buscado externamente
+                  if (_lugarExternoSeleccionado != null)
+                    Marker(
+                      point: _lugarExternoSeleccionado!.coordenada,
+                      width: 45,
+                      height: 45,
+                      child: const Icon(Icons.location_on, color: Colors.deepPurple, size: 40),
                     ),
                   ..._atractivosFiltrados.map((atractivo) {
                     final partes = atractivo.coordenadasGps.split(',');
@@ -746,40 +905,158 @@ class _AforoScreenState extends State<AforoScreen> {
             ],
           ),
 
-          // Filtro superior por chips
+          // BARRA DE BÚSQUEDA TIPO GOOGLE MAPS CON OSM NOMINATIM + CHIPS
           Positioned(
             top: 10,
-            left: 10,
-            right: 10,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  ChoiceChip(
-                    label: const Text('Todos (10)'),
-                    selected: _filtroActual == FiltroAforo.todos,
-                    onSelected: (val) => setState(() => _filtroActual = FiltroAforo.todos),
+            left: 12,
+            right: 12,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Card(
+                  elevation: 4,
+                  shadowColor: Colors.black26,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.search, color: Colors.indigo, size: 22),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Autocomplete<ResultadoBusqueda>(
+                            displayStringForOption: (option) => option.titulo,
+                            optionsBuilder: (TextEditingValue textEditingValue) async {
+                              return await _ejecutarBusqueda(textEditingValue.text);
+                            },
+                            onSelected: (ResultadoBusqueda seleccion) {
+                              FocusScope.of(context).unfocus();
+                              if (seleccion.atractivoLocal != null) {
+                                _seleccionarAtractivo(seleccion.atractivoLocal!);
+                              } else {
+                                _seleccionarLugarExterno(seleccion);
+                              }
+                            },
+                            fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+                              return TextField(
+                                controller: textController,
+                                focusNode: focusNode,
+                                style: const TextStyle(fontSize: 13.5),
+                                decoration: InputDecoration(
+                                  hintText: 'Buscar en Cusco (calles, plazas, locales)...',
+                                  hintStyle: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                ),
+                              );
+                            },
+                            optionsViewBuilder: (context, onSelected, options) {
+                              return Align(
+                                alignment: Alignment.topLeft,
+                                child: Material(
+                                  elevation: 6,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width - 48,
+                                    constraints: const BoxConstraints(maxHeight: 250),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: ListView.separated(
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      shrinkWrap: true,
+                                      itemCount: options.length,
+                                      separatorBuilder: (_, __) => const Divider(height: 1),
+                                      itemBuilder: (context, index) {
+                                        final opcion = options.elementAt(index);
+                                        final esLocal = !opcion.esExterno;
+                                        final esCritico = esLocal &&
+                                            opcion.atractivoLocal!.obtenerEstadoAforo() ==
+                                                NivelAforo.saturado;
+
+                                        return ListTile(
+                                          dense: true,
+                                          leading: Icon(
+                                            esLocal ? Icons.local_activity : Icons.place,
+                                            size: 20,
+                                            color: esLocal
+                                                ? (esCritico ? Colors.red : Colors.green)
+                                                : Colors.indigo,
+                                          ),
+                                          title: Text(
+                                            opcion.titulo,
+                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          subtitle: Text(
+                                            opcion.subtitulo,
+                                            style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          trailing: esLocal
+                                              ? Text(
+                                            '${opcion.atractivoLocal!.calcularPorcentajeOcupacion().toStringAsFixed(0)}%',
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: esCritico ? Colors.red : Colors.green.shade700,
+                                            ),
+                                          )
+                                              : const Icon(Icons.arrow_outward, size: 14, color: Colors.grey),
+                                          onTap: () => onSelected(opcion),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        if (_atractivoSeleccionado != null || _lugarExternoSeleccionado != null)
+                          IconButton(
+                            icon: const Icon(Icons.clear, size: 18, color: Colors.grey),
+                            onPressed: _cerrarDetalle,
+                          ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: const Text('Solo Críticos'),
-                    selected: _filtroActual == FiltroAforo.soloCriticos,
-                    selectedColor: const Color(0xFFFFCDD2),
-                    onSelected: (val) => setState(() => _filtroActual = FiltroAforo.soloCriticos),
+                ),
+                const SizedBox(height: 6),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: const Text('Todos (10)', style: TextStyle(fontSize: 11.5)),
+                        selected: _filtroActual == FiltroAforo.todos,
+                        onSelected: (val) => setState(() => _filtroActual = FiltroAforo.todos),
+                      ),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('Solo Críticos', style: TextStyle(fontSize: 11.5)),
+                        selected: _filtroActual == FiltroAforo.soloCriticos,
+                        selectedColor: const Color(0xFFFFCDD2),
+                        onSelected: (val) => setState(() => _filtroActual = FiltroAforo.soloCriticos),
+                      ),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('Zonas Libres', style: TextStyle(fontSize: 11.5)),
+                        selected: _filtroActual == FiltroAforo.zonasLibres,
+                        selectedColor: const Color(0xFFC8E6C9),
+                        onSelected: (val) => setState(() => _filtroActual = FiltroAforo.zonasLibres),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: const Text('Zonas Libres'),
-                    selected: _filtroActual == FiltroAforo.zonasLibres,
-                    selectedColor: const Color(0xFFC8E6C9),
-                    onSelected: (val) => setState(() => _filtroActual = FiltroAforo.zonasLibres),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
-          // Tarjeta de aforo inferior
+          // Tarjetas contextuales inferiores
           if (_atractivoSeleccionado != null)
             Positioned(
               bottom: 16,
@@ -790,10 +1067,24 @@ class _AforoScreenState extends State<AforoScreen> {
                 child: _buildTarjetaCongestion(_atractivoSeleccionado!),
               ),
             ),
+
+          if (_lugarExternoSeleccionado != null)
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: SafeArea(
+                top: false,
+                child: _buildTarjetaLugarExterno(_lugarExternoSeleccionado!),
+              ),
+            ),
         ],
       ),
       floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: _atractivoSeleccionado != null ? 220 : 0),
+        padding: EdgeInsets.only(
+            bottom: (_atractivoSeleccionado != null || _lugarExternoSeleccionado != null)
+                ? 220
+                : 0),
         child: FloatingActionButton.small(
           backgroundColor: Colors.white,
           foregroundColor: Colors.indigo,
