@@ -228,3 +228,14 @@ Desarrollado exclusivamente con fines académicos y de investigación para la Un
 Facultad de Ingeniería Eléctrica, Electrónica, Informática y Mecánica  
 Escuela Profesional de Ingeniería Informática y de Sistemas  
 Cusco — Perú — 2026
+## Verificación de Calidad y Cobertura (Testing & QA)
+
+El proyecto cuenta con una batería de pruebas automatizadas que cubren la capa de dominio, servicios de red/routing, y componentes de interfaz reactiva.
+
+### Resultados de Cobertura
+- **Pruebas Unitarias y de Widgets:** 50/50 exitosas (100% pass rate).
+- **Cobertura de Líneas (Line Coverage):** **90.37%** (Superando el umbral mínimo del 90%).
+
+### Reproducción Local
+```bash
+flutter test --coverage
