@@ -230,12 +230,21 @@ Escuela Profesional de Ingeniería Informática y de Sistemas
 Cusco — Perú — 2026
 ## Verificación de Calidad y Cobertura (Testing & QA)
 
-El proyecto cuenta con una batería de pruebas automatizadas que cubren la capa de dominio, servicios de red/routing, y componentes de interfaz reactiva.
+El proyecto cuenta con una batería de pruebas automatizadas que cubren la arquitectura de software: capa de dominio, servicios de enrutamiento y componentes de interfaz reactiva.
 
-### Resultados de Cobertura
-- **Pruebas Unitarias y de Widgets:** 50/50 exitosas (100% pass rate).
-- **Cobertura de Líneas (Line Coverage):** **90.37%** (Superando el umbral mínimo del 90%).
+### Métricas de Calidad
+- **Batería de Pruebas:** 50/50 ejecutadas exitosamente (100% pass rate).
+- **Cobertura de Código (Line Coverage):** **90.37%** (Superando el umbral mínimo exigido del 90%).
 
-### Reproducción Local
-```bash
+### Reproducción de Pruebas y Auditoría Local
+
+1. Ejecutar la suite de pruebas y generar el reporte LCOV:
 flutter test --coverage
+
+2. Auditar el porcentaje total en PowerShell:
+$lines = Get-Content coverage/lcov.info; $lf = 0; $lh = 0
+foreach ($l in $lines) {
+    if ($l -match "^LF:(\d+)") { $lf += [int]$matches[1] }
+    if ($l -match "^LH:(\d+)") { $lh += [int]$matches[1] }
+}
+Write-Host "Cobertura Total Obtenida: $([math]::Round(($lh / $lf) * 100, 2))%"
