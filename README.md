@@ -26,6 +26,35 @@ Proyecto desarrollado para la asignatura de **Desarrollo de Software II**, Escue
 **Ubicación:** Cusco, Perú  
 
 ---
+## 📋 Planificación por Capas: Historias de Usuario (User Stories)
+
+### HU-01: Visualización y Monitoreo de Aforo en Tiempo Real
+- **Como:** Turista o ciudadano transitando por el Centro Histórico de Cusco.
+- **Quiero:** Visualizar en un mapa interactivo el nivel de saturación de las calles patrimoniales (Hatun Rumiyoc, Cuesta San Blas, etc.).
+- **Para:** Tomar decisiones informadas y evitar zonas con aglomeraciones críticas.
+- **Criterios de Aceptación:**
+  - Marcadores georreferenciados con código de semáforo (Verde: Óptimo, Naranja: Moderado, Rojo: Saturado).
+  - Tarjeta desplegable con porcentaje exacto de ocupación y velocidad de tránsito estimada.
+  - Filtros rápidos por estado de aforo (Todos, Solo Críticos, Zonas Libres).
+
+### HU-02: Enrutamiento y Desvío Peatonal Inteligente
+- **Como:** Visitante ubicado en un punto con saturación crítica.
+- **Quiero:** Recibir alternativas de desvío con fichas técnicas y trazado de rutas directas.
+- **Para:** Llegar a mi destino mediante corredores patrimoniales alternos y seguros.
+- **Criterios de Aceptación:**
+  - Trazado de polilíneas sobre el mapa conectando origen y destino alterno.
+  - Integración con servicio de enrutamiento peatonal OSRM y fallback local.
+  - Despliegue de checkpoints culturales, desnivel topográfico y garantía de seguridad (POLTUR).
+
+### HU-03: Control de Sesión y Salida Segura
+- **Como:** Usuario registrado o visitante invitado.
+- **Quiero:** Poder cerrar mi sesión desde la barra superior de navegación.
+- **Para:** Proteger mi acceso y permitir el cambio seguro de perfil.
+- **Criterios de Aceptación:**
+  - Botón de logout visible en el AppBar de la pantalla principal.
+  - Limpieza completa de la pila de navegación hacia la pantalla de autenticación (`LoginScreen`).
+  - Cobertura de pruebas unitarias sobre el evento de navegación.
+---
 
 ## 1. Definición del Problema
 
