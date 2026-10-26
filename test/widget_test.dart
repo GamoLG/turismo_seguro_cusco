@@ -188,7 +188,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Mapa Peatonal en Vivo - Cusco'), findsOneWidget);
-      expect(find.text('Toca un marcador en el mapa para ver la congestión peatonal.'), findsOneWidget);
+      expect(find.text('Todos (10)'), findsOneWidget);
+      expect(find.text('Solo Críticos'), findsOneWidget);
+      expect(find.text('Zonas Libres'), findsOneWidget);
+      expect(find.text('Buscar en Cusco (calles, plazas, locales)...'), findsOneWidget);
       expect(find.byIcon(Icons.location_on), findsWidgets);
     });
 
@@ -205,16 +208,16 @@ void main() {
       await tester.tap(primerMarcador);
       await tester.pumpAndSettle();
 
-      // Debe aparecer la tarjeta de congestión y el botón de ruta alterna
+      // Debe aparecer la tarjeta de congestión y el botón de detalle
       expect(find.text('Nivel de ocupación'), findsOneWidget);
-      expect(find.text('Buscar ruta alternativa'), findsOneWidget);
+      expect(find.text('Ver detalle del circuito'), findsOneWidget);
 
-      // Presionar buscar ruta alternativa
-      await tester.tap(find.text('Buscar ruta alternativa'));
+      // Presionar ver detalle del circuito
+      await tester.tap(find.text('Ver detalle del circuito'));
       await tester.pumpAndSettle();
 
       // Debe navegar hacia RutaAlternaScreen
-      expect(find.text('Desvío Peatonal Sugerido'), findsOneWidget);
+      expect(find.text('Desvío Recomendado'), findsOneWidget);
     });
 
     testWidgets('Permite cerrar el detalle de congestión al presionar icono de cerrar', (WidgetTester tester) async {
@@ -237,6 +240,109 @@ void main() {
 
       expect(find.text('Nivel de ocupación'), findsNothing);
     });
+
+    testWidgets('Filtros de aforo actualizan los marcadores del mapa', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(const MaterialApp(home: AforoScreen()));
+      await tester.pumpAndSettle();
+
+      final marcadoresTodos = find.byIcon(Icons.location_on).evaluate().length;
+
+      await tester.tap(find.text('Solo Críticos'));
+      await tester.pumpAndSettle();
+      final marcadoresCriticos = find.byIcon(Icons.location_on).evaluate().length;
+
+      await tester.tap(find.text('Zonas Libres'));
+      await tester.pumpAndSettle();
+      final marcadoresLibres = find.byIcon(Icons.location_on).evaluate().length;
+
+      expect(marcadoresCriticos, lessThan(marcadoresTodos));
+      expect(marcadoresLibres, lessThan(marcadoresTodos));
+      expect(marcadoresLibres, greaterThan(0));
+
+      await tester.tap(find.text('Todos (10)'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.location_on).evaluate().length, marcadoresTodos);
+    });
+
+    testWidgets('La búsqueda local encuentra atractivos y permite seleccionarlos', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(const MaterialApp(home: AforoScreen()));
+      await tester.pumpAndSettle();
+
+      final campo = find.byType(TextField).first;
+      await tester.enterText(campo, 'Hatun');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Calle Hatun Rumiyoc (Piedra 12 Ángulos)'), findsWidgets);
+
+      await tester.tap(find.text('Calle Hatun Rumiyoc (Piedra 12 Ángulos)').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nivel de ocupación'), findsOneWidget);
+    });
+
+    testWidgets('Selecciona y deselecciona una ruta de desvío saturada', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(const MaterialApp(home: AforoScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.location_on).first);
+      await tester.pumpAndSettle();
+
+      final opcion = find.text('Vía Choquechaka y San Cristóbal');
+      expect(opcion, findsOneWidget);
+
+      await tester.tap(opcion);
+      await tester.pumpAndSettle();
+      expect(find.text('Vía Choquechaka y San Cristóbal'), findsOneWidget);
+
+      await tester.tap(opcion);
+      await tester.pumpAndSettle();
+      expect(find.text('Nivel de ocupación'), findsOneWidget);
+    });
+
+    testWidgets('Muestra la ubicación del usuario cuando el permiso es concedido', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      const canal = MethodChannel('flutter.baseflow.com/geolocator');
+      messenger.setMockMethodCallHandler(canal, (MethodCall call) async {
+        switch (call.method) {
+          case 'checkPermission':
+          case 'requestPermission':
+            return 2; // LocationPermission.whileInUse
+          case 'getCurrentPosition':
+            return <String, dynamic>{
+              'latitude': -13.5159,
+              'longitude': -71.9772,
+              'accuracy': 5.0,
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+            };
+          default:
+            return 0;
+        }
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(canal, (MethodCall call) async => 0);
+      });
+
+      await tester.pumpWidget(const MaterialApp(home: AforoScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.my_location), findsOneWidget);
+    });
   });
 
   group('5. Pruebas de Renderizado de RutaAlternaScreen', () {
@@ -258,14 +364,16 @@ void main() {
         ),
       ));
 
-      expect(find.text('Desvío Peatonal Sugerido'), findsOneWidget);
+      expect(find.text('Desvío Recomendado'), findsOneWidget);
       expect(find.text(circuito.nombreCircuito), findsOneWidget);
       expect(find.text('1.2 km'), findsOneWidget);
       expect(find.text('18 min'), findsOneWidget);
       expect(find.text('15%'), findsOneWidget);
-      expect(find.text('Seguridad Garantizada'), findsOneWidget);
       expect(find.text(circuito.garantiaSeguridad), findsOneWidget);
-      expect(find.text('Iniciar Navegación Asistida'), findsOneWidget);
+      expect(find.text('Iniciar Navegación'), findsOneWidget);
+      // Sin checkpoints ni perfil topográfico no se muestran esas secciones
+      expect(find.textContaining('Itinerario'), findsNothing);
+      expect(find.byIcon(Icons.terrain), findsNothing);
     });
 
     testWidgets('Permite alternar inicio y parada de navegación en RutaAlternaScreen', (WidgetTester tester) async {
@@ -290,17 +398,60 @@ void main() {
         ),
       ));
 
-      final botonNavegar = find.text('Iniciar Navegación Asistida');
-      await tester.ensureVisible(botonNavegar);
-      await tester.tap(botonNavegar);
+      await tester.tap(find.text('Iniciar Navegación'));
       await tester.pump();
 
-      expect(find.text('Navegación iniciada. Conteo de pasos y GPS activo.'), findsOneWidget);
-      expect(find.text('Detener Navegación'), findsOneWidget);
+      expect(find.text('Navegación asistida activa. Monitoreo por cuadrantes POLTUR iniciado.'), findsOneWidget);
+      expect(find.text('Finalizar Navegación'), findsOneWidget);
 
-      await tester.tap(find.text('Detener Navegación'));
+      await tester.tap(find.text('Finalizar Navegación'));
       await tester.pump();
-      expect(find.text('Iniciar Navegación Asistida'), findsOneWidget);
+      expect(find.text('Iniciar Navegación'), findsOneWidget);
+    });
+
+    testWidgets('Muestra perfil topográfico e itinerario desplegable', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final circuito = CircuitoAlternativo(
+        idCircuito: 'circ_02',
+        nombreCircuito: 'Circuito San Blas',
+        tiempoEstimadoMin: 12,
+        distanciaKm: 0.8,
+        porcentajeCongestion: 20,
+        descripcionCultural: 'Vía alterna empedrada.',
+        garantiaSeguridad: 'Zona monitoreada con cámaras',
+        perfilTopografico: const PerfilTopografico(
+          desnivel: '+22 m (Pendiente 4.1%)',
+          calzada: 'Adoquín colonial',
+          advertencia: 'Vía estrecha en tramos.',
+        ),
+        checkpoints: const [
+          CheckpointPeatonal(numero: '1', nombre: 'Ingreso por Choquechaka', detalle: 'Tramo inicial'),
+          CheckpointPeatonal(numero: '2', nombre: 'Llegada a Nazarenas', detalle: 'Tramo final'),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: RutaAlternaScreen(
+          circuito: circuito,
+          origenNombre: 'Cuesta de San Blas',
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('+22 m'), findsOneWidget);
+      expect(find.text('Vía estrecha en tramos.'), findsOneWidget);
+      expect(find.text('Itinerario · 2 paradas'), findsOneWidget);
+      expect(find.text('Ingreso por Choquechaka'), findsNothing);
+
+      await tester.scrollUntilVisible(find.text('Itinerario · 2 paradas'), 120);
+      await tester.tap(find.text('Itinerario · 2 paradas'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ingreso por Choquechaka'), findsOneWidget);
+      expect(find.text('Llegada a Nazarenas'), findsOneWidget);
     });
   });
 }

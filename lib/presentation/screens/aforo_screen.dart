@@ -64,8 +64,19 @@ class _AforoScreenState extends State<AforoScreen> {
         tiempoEstimadoMin: 18,
         distanciaKm: 1.2,
         porcentajeCongestion: 15,
-        descripcionCultural: 'Ruta patrimonial alterna que bordea Choquechaka y Saphy, reduciendo el desgaste lítico.',
+        descripcionCultural: 'Ruta patrimonial alterna que bordea Choquechaka y Saphy, reduciendo el desgaste lítico en Hatun Rumiyoc.',
         garantiaSeguridad: 'Patrullaje permanente de la Policía de Turismo (POLTUR)',
+        perfilTopografico: PerfilTopografico(
+          desnivel: '+38 m (Pendiente 6.2%)',
+          calzada: 'Empedrado y gradas coloniales',
+          advertencia: 'Contiene escalinatas coloniales. Tránsito sugerido a ritmo moderado.',
+        ),
+        checkpoints: [
+          CheckpointPeatonal(numero: '1', nombre: 'Desvío inicial por Calle Choquechaka', detalle: 'Vía lateral ancha con calzada regular (0 - 300 m)'),
+          CheckpointPeatonal(numero: '2', nombre: 'Paso por Acueducto Sapantiana', detalle: 'Monumento colonial de desfogue cultural (300 - 750 m)'),
+          CheckpointPeatonal(numero: '3', nombre: 'Callejón Siete Borreguitos y Saphy', detalle: 'Corredor empinado hacia miradores (750 - 1050 m)'),
+          CheckpointPeatonal(numero: '4', nombre: 'Llegada: Plazoleta San Cristóbal', detalle: 'Zona de aforo libre y descanso panorámico (1.2 km)'),
+        ],
       ),
     ),
     AtractivoTuristico(
@@ -82,8 +93,18 @@ class _AforoScreenState extends State<AforoScreen> {
         tiempoEstimadoMin: 12,
         distanciaKm: 0.8,
         porcentajeCongestion: 20,
-        descripcionCultural: 'Vía alterna empedrada y tranquila paralela a la Cuesta de San Blas.',
-        garantiaSeguridad: 'Zona monitoreada con cámaras y serenazgo',
+        descripcionCultural: 'Vía alterna empedrada y tranquila paralela a la Cuesta de San Blas, con menor flujo peatonal.',
+        garantiaSeguridad: 'Zona monitoreada con cámaras y serenazgo municipal',
+        perfilTopografico: PerfilTopografico(
+          desnivel: '+22 m (Pendiente 4.1%)',
+          calzada: 'Adoquín colonial y veredas',
+          advertencia: 'Vía estrecha en tramos. Evitar en horas de alta concurrencia artesanal.',
+        ),
+        checkpoints: [
+          CheckpointPeatonal(numero: '1', nombre: 'Ingreso por Calle Choquechaka', detalle: 'Desvío desde la base de la Cuesta de San Blas (0 - 200 m)'),
+          CheckpointPeatonal(numero: '2', nombre: 'Cruce Plazoleta Succia', detalle: 'Espacio abierto con galerías artesanales (200 - 500 m)'),
+          CheckpointPeatonal(numero: '3', nombre: 'Llegada: Plazoleta de las Nazarenas', detalle: 'Zona de aforo reducido y acceso a museos (0.8 km)'),
+        ],
       ),
     ),
     AtractivoTuristico(
@@ -100,8 +121,18 @@ class _AforoScreenState extends State<AforoScreen> {
         tiempoEstimadoMin: 10,
         distanciaKm: 0.6,
         porcentajeCongestion: 22,
-        descripcionCultural: 'Paso por plazoleta monumental y museos coloniales.',
-        garantiaSeguridad: 'Presencia constante de seguridad ciudadana',
+        descripcionCultural: 'Recorrido cultural por el Palacio Inka Rocha hasta la Plazoleta de las Nazarenas, con menor presión peatonal.',
+        garantiaSeguridad: 'Presencia constante de seguridad ciudadana y POLTUR',
+        perfilTopografico: PerfilTopografico(
+          desnivel: '+15 m (Pendiente 2.8%)',
+          calzada: 'Calzada empedrada ancha',
+          advertencia: 'Tramo con mayor amplitud. Apto para turistas con movilidad reducida.',
+        ),
+        checkpoints: [
+          CheckpointPeatonal(numero: '1', nombre: 'Desvío desde Calle Triunfo', detalle: 'Giro hacia Palacio Inka Rocha (0 - 150 m)'),
+          CheckpointPeatonal(numero: '2', nombre: 'Frente al Palacio Inka Rocha', detalle: 'Hito arquitectónico colonial (150 - 400 m)'),
+          CheckpointPeatonal(numero: '3', nombre: 'Llegada: Plazoleta de las Nazarenas', detalle: 'Acceso al Museo Precolombino (0.6 km)'),
+        ],
       ),
     ),
     AtractivoTuristico(
@@ -128,8 +159,18 @@ class _AforoScreenState extends State<AforoScreen> {
         tiempoEstimadoMin: 8,
         distanciaKm: 0.5,
         porcentajeCongestion: 28,
-        descripcionCultural: 'Vía ancha de salida patrimonial hacia la Avenida El Sol.',
-        garantiaSeguridad: 'Patrullaje integrado centro histórico',
+        descripcionCultural: 'Vía ancha de salida patrimonial desde Calle Loreto hacia la Avenida El Sol, con bajo nivel de congestión.',
+        garantiaSeguridad: 'Patrullaje integrado del centro histórico de Cusco',
+        perfilTopografico: PerfilTopografico(
+          desnivel: '-10 m (Descenso 2.0%)',
+          calzada: 'Calle ancha asfaltada y empedrada',
+          advertencia: 'Vía de bajada. Cruce con tráfico vehicular en intersección con Av. El Sol.',
+        ),
+        checkpoints: [
+          CheckpointPeatonal(numero: '1', nombre: 'Salida por Calle Loreto', detalle: 'Desvío hacia Calle Maruri (0 - 150 m)'),
+          CheckpointPeatonal(numero: '2', nombre: 'Tramo Maruri - Pampa del Castillo', detalle: 'Corredor amplio de descenso (150 - 400 m)'),
+          CheckpointPeatonal(numero: '3', nombre: 'Llegada: Avenida El Sol', detalle: 'Acceso a transporte y zona comercial (0.5 km)'),
+        ],
       ),
     ),
     AtractivoTuristico(
@@ -292,7 +333,6 @@ class _AforoScreenState extends State<AforoScreen> {
       case FiltroAforo.zonasLibres:
         return _atractivos.where((a) => a.obtenerEstadoAforo() == NivelAforo.optimo).toList();
       case FiltroAforo.todos:
-      default:
         return _atractivos;
     }
   }
@@ -582,9 +622,11 @@ class _AforoScreenState extends State<AforoScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Nivel de ocupación',
-                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+                const Expanded(
+                  child: Text(
+                    'Nivel de ocupación',
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+                  ),
                 ),
                 Text(
                   tieneAforoValido ? '${ocupacion.toStringAsFixed(1)}%' : 'N/D',
@@ -612,9 +654,11 @@ class _AforoScreenState extends State<AforoScreen> {
                 children: [
                   const Icon(Icons.alt_route, size: 15, color: Colors.indigo),
                   const SizedBox(width: 6),
-                  const Text(
-                    'Toca una ruta para ver el camino en el mapa:',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  const Expanded(
+                    child: Text(
+                      'Toca una ruta para ver el camino en el mapa:',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    ),
                   ),
                   if (_cargandoRuta) ...[
                     const Spacer(),
@@ -1081,18 +1125,14 @@ class _AforoScreenState extends State<AforoScreen> {
             ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(
-            bottom: (_atractivoSeleccionado != null || _lugarExternoSeleccionado != null)
-                ? 220
-                : 0),
-        child: FloatingActionButton.small(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.indigo,
-          onPressed: () => _mapController.move(_ubicacionUsuario, 16.5),
-          child: const Icon(Icons.gps_fixed),
-        ),
-      ),
+      floatingActionButton: (_atractivoSeleccionado != null || _lugarExternoSeleccionado != null)
+          ? null
+          : FloatingActionButton.small(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.indigo,
+              onPressed: () => _mapController.move(_ubicacionUsuario, 16.5),
+              child: const Icon(Icons.gps_fixed),
+            ),
     );
   }
 }
