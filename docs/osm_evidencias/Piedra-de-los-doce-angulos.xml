@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.0 (941182 spike-08.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <node id="1046924556" visible="true" version="7" changeset="164209591" timestamp="2025-03-28T14:10:36Z" user="GilmarVA" uid="15544590" lat="-13.5160104" lon="-71.9762493">
+  <tag k="historic" v="ruins"/>
+  <tag k="historic:civilization" v="inkan"/>
+  <tag k="inscription" v="Ref. 273 Cusco UNESCO"/>
+  <tag k="name" v="Piedra de los Doce Ángulos"/>
+  <tag k="name:en" v="Twelve-angled-stone"/>
+  <tag k="name:es" v="Piedra de los Doce Ángulos"/>
+  <tag k="note" v="Piedra de los doce ángulos"/>
+  <tag k="tourism" v="attraction"/>
+  <tag k="website" v="http://www.lageoguia.org/la-piedra-de-los-doce-angulos-cusco-peru/"/>
+  <tag k="wheelchair" v="yes"/>
+  <tag k="wikidata" v="Q16618903"/>
+  <tag k="wikipedia" v="es:Piedra de los doce ángulos"/>
+ </node>
+</osm>

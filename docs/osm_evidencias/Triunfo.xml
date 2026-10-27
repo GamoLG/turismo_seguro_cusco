@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.0 (771962 spike-07.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="76344026" visible="true" version="22" changeset="127854744" timestamp="2022-10-20T20:41:55Z" user="murghdo" uid="2418845">
+  <nd ref="156918696"/>
+  <nd ref="1057392260"/>
+  <nd ref="1057392256"/>
+  <nd ref="1057392267"/>
+  <nd ref="259155768"/>
+  <nd ref="900135745"/>
+  <nd ref="5595736876"/>
+  <nd ref="5590644437"/>
+  <nd ref="1046942330"/>
+  <tag k="highway" v="residential"/>
+  <tag k="lit" v="yes"/>
+  <tag k="maxspeed" v="30"/>
+  <tag k="name" v="Calle Triunfo"/>
+  <tag k="name:qu" v="Sunturwasi"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="sidewalk" v="both"/>
+  <tag k="surface" v="sett"/>
+  <tag k="wikidata" v="Q83305418"/>
+ </way>
+</osm>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.0 (760314 spike-07.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="85617597" visible="true" version="18" changeset="148755950" timestamp="2024-03-17T01:54:58Z" user="GilmarVA" uid="15544590">
+  <nd ref="6484653967"/>
+  <nd ref="6484653968"/>
+  <nd ref="5721424443"/>
+  <nd ref="409506460"/>
+  <nd ref="6037376533"/>
+  <nd ref="30974711"/>
+  <nd ref="3248312329"/>
+  <nd ref="30974712"/>
+  <tag k="access" v="discouraged"/>
+  <tag k="foot" v="yes"/>
+  <tag k="highway" v="residential"/>
+  <tag k="lane_markings" v="no"/>
+  <tag k="lit" v="yes"/>
+  <tag k="maxspeed" v="40"/>
+  <tag k="motor_vehicle" v="designated"/>
+  <tag k="name" v="Hauqaypata"/>
+  <tag k="name:es" v="Huacaypata"/>
+  <tag k="name:qu" v="Hauqaypata"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="surface" v="paving_stones"/>
+  <tag k="width" v="8"/>
+ </way>
+</osm>

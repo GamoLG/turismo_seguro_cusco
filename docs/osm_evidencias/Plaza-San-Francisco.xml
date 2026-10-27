@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.0 (911772 spike-08.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="918019381" visible="true" version="7" changeset="138947135" timestamp="2023-07-24T15:39:47Z" user="rodolfovargas" uid="1217047">
+  <nd ref="5913940492"/>
+  <nd ref="560234604"/>
+  <nd ref="4342022116"/>
+  <nd ref="560234605"/>
+  <nd ref="8626610647"/>
+  <nd ref="8626610648"/>
+  <nd ref="560234602"/>
+  <nd ref="4537156454"/>
+  <nd ref="6326443410"/>
+  <nd ref="5122964317"/>
+  <nd ref="6326443389"/>
+  <nd ref="10536456523"/>
+  <nd ref="5913940498"/>
+  <nd ref="8626610650"/>
+  <nd ref="5913940497"/>
+  <nd ref="8526214482"/>
+  <nd ref="5913940496"/>
+  <nd ref="6326443387"/>
+  <nd ref="4867449710"/>
+  <nd ref="8526214489"/>
+  <nd ref="8526214502"/>
+  <nd ref="5913940511"/>
+  <nd ref="8626610649"/>
+  <nd ref="11060005829"/>
+  <nd ref="8626610646"/>
+  <nd ref="5913940492"/>
+  <tag k="area" v="yes"/>
+  <tag k="highway" v="pedestrian"/>
+  <tag k="lit" v="yes"/>
+  <tag k="loc_name" v="El Atrio de San Francisco"/>
+  <tag k="name" v="Plaza San Francisco"/>
+  <tag k="place" v="square"/>
+  <tag k="smoothness" v="intermediate"/>
+  <tag k="surface" v="paving_stones"/>
+  <tag k="wikidata" v="Q7203642"/>
+  <tag k="wikipedia" v="es:Basílica de San Francisco (La Paz)"/>
+ </way>
+</osm>

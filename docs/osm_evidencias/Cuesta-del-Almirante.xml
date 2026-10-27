@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.0 (760289 spike-07.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="270463060" visible="true" version="8" changeset="131200405" timestamp="2023-01-12T18:35:47Z" user="ConnorMaps" uid="11073774">
+  <nd ref="409506462"/>
+  <nd ref="1531459533"/>
+  <nd ref="1531459535"/>
+  <nd ref="1531459536"/>
+  <nd ref="260554193"/>
+  <nd ref="5590600143"/>
+  <tag k="highway" v="pedestrian"/>
+  <tag k="lit" v="yes"/>
+  <tag k="motor_vehicle" v="designated"/>
+  <tag k="name" v="Cuesta del Almirante"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="surface" v="unhewn_cobblestone"/>
+  <tag k="wikidata" v="Q111945396"/>
+ </way>
+</osm>

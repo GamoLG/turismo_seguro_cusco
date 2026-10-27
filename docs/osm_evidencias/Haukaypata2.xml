@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.1.0 (2075 spike-07.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="35034445" visible="true" version="16" changeset="153313443" timestamp="2024-06-28T23:31:15Z" user="hephestos" uid="21449127">
+  <nd ref="30974712"/>
+  <nd ref="3248312328"/>
+  <nd ref="7160346798"/>
+  <nd ref="7160346799"/>
+  <nd ref="30972889"/>
+  <tag k="access" v="discouraged"/>
+  <tag k="foot" v="yes"/>
+  <tag k="highway" v="residential"/>
+  <tag k="lane_markings" v="no"/>
+  <tag k="lit" v="yes"/>
+  <tag k="maxspeed" v="40"/>
+  <tag k="motor_vehicle" v="designated"/>
+  <tag k="name" v="Hauqaypata"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="surface" v="paving_stones"/>
+ </way>
+</osm>
